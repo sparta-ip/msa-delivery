@@ -7,13 +7,13 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiResponseDto<T> {
-    private int serviceCode;
+    private int status;
     private String message;
     private T data;
 
     public static <T> ApiResponseDto<T> response(int serviceCode, String message, T data) {
         return ApiResponseDto.<T>builder()
-                .serviceCode(serviceCode)
+                .status(serviceCode)
                 .message(message)
                 .data(data)
                 .build();

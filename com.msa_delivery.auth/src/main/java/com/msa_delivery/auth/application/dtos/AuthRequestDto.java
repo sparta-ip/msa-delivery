@@ -1,6 +1,6 @@
 package com.msa_delivery.auth.application.dtos;
 
-import com.spring_cloud.eureka.client.auth.entity.UserRoleEnum;
+import com.msa_delivery.auth.domain.UserRoleEnum;
 import lombok.*;
 
 @Getter
@@ -8,8 +8,8 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AuthRequestDto {
-    private String email;
     private String username;
     private String password;
     private UserRoleEnum role;
+    private String slackId;
 }
