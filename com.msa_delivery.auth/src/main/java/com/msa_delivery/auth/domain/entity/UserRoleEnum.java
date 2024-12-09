@@ -1,4 +1,4 @@
-package com.msa_delivery.auth.domain;
+package com.msa_delivery.auth.domain.entity;
 
 public enum UserRoleEnum {
 

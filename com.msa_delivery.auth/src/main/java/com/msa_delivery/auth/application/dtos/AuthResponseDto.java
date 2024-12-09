@@ -1,6 +1,6 @@
 package com.msa_delivery.auth.application.dtos;
 
-import com.msa_delivery.auth.domain.User;
+import com.msa_delivery.auth.domain.entity.User;
 import lombok.*;
 
 @Getter

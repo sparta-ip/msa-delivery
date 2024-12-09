@@ -1,4 +1,4 @@
-package com.msa_delivery.auth.domain;
+package com.msa_delivery.auth.domain.entity;
 
 import com.msa_delivery.auth.application.dtos.AuthRequestDto;
 import jakarta.persistence.*;

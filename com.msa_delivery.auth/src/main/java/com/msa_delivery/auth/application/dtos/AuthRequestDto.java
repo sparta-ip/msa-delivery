@@ -1,6 +1,6 @@
 package com.msa_delivery.auth.application.dtos;
 
-import com.msa_delivery.auth.domain.UserRoleEnum;
+import com.msa_delivery.auth.domain.entity.UserRoleEnum;
 import lombok.*;
 
 @Getter
