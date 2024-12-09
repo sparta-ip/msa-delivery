@@ -3,6 +3,10 @@
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/auth" />
+    <file type="web" url="file://$PROJECT_DIR$/com.msa_delivery.auth" />
+    <file type="web" url="file://$PROJECT_DIR$/com.msa_delivery.eureka" />
+    <file type="web" url="file://$PROJECT_DIR$/com.msa_delivery.gateway" />
+    <file type="web" url="file://$PROJECT_DIR$/com.msa_delivery.user" />
     <file type="web" url="file://$PROJECT_DIR$/gateway" />
     <file type="web" url="file://$PROJECT_DIR$/user" />
   </component>
