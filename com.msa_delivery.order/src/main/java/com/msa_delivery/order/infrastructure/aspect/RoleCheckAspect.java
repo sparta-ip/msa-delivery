@@ -21,14 +21,8 @@ public class RoleCheckAspect {
     private final OrderService orderService;
     private final HubService hubService;
 
-    // 주문 수정에 대해 AOP 역할 검사 적용
-    @Pointcut("execution(* com.msa_delivery.order.presentation.controller.OrderController.updateOrder(..))")
-    public void orderUpdatePointcut() {
-    }
-
-    // 주문 수정 전 사용자 권한 검사
-    @Before("orderUpdatePointcut() && args(orderRequestDto, user_id, username, role, order_id)")
-    public void checkUserRole(Object orderRequestDto, Long user_id, String username, String role, UUID order_id) {
+    // 주문 수정과 삭제 공통 권한 검사 메서드
+    private void checkUserRoleForOrder(Long user_id, String username, String role, UUID order_id) {
         log.info("AOP Role Check - user_id: {}, username: {}, role: {}, orderId: {}", user_id, username, role, order_id);
 
         // 1. 마스터 관리자 권한이 있는 경우 통과
@@ -64,5 +58,27 @@ public class RoleCheckAspect {
         // 3. 위 조건에 맞지 않는 경우, 접근 불가 예외 발생
         log.warn("Access denied for user_id: {}, role: {}, order_id: {}", user_id, role, order_id);
         throw new AccessDeniedException("접근 권한이 없습니다.");
+    }
+
+    // 주문 수정에 대해 AOP 역할 검사 적용
+    @Pointcut("execution(* com.msa_delivery.order.presentation.controller.OrderController.updateOrder(..))")
+    public void orderUpdatePointcut() {
+    }
+
+    // 주문 삭제에 대해 AOP 역할 검사 적용
+    @Pointcut("execution(* com.msa_delivery.order.presentation.controller.OrderController.deleteOrder(..))")
+    public void orderDeletePointcut() {
+    }
+
+    // 주문 수정 전 사용자 권한 검사
+    @Before("orderUpdatePointcut() && args(orderRequestDto, user_id, username, role, order_id)")
+    public void checkUserRoleForUpdate(Object orderRequestDto, Long user_id, String username, String role, UUID order_id) {
+        checkUserRoleForOrder(user_id, username, role, order_id);
+    }
+
+    // 주문 삭제 전 사용자 권한 검사
+    @Before("orderDeletePointcut() && args(orderRequestDto, user_id, username, role, order_id)")
+    public void checkUserRoleForDelete(Object orderRequestDto, Long user_id, String username, String role, UUID order_id) {
+        checkUserRoleForOrder(user_id, username, role, order_id);
     }
 }
