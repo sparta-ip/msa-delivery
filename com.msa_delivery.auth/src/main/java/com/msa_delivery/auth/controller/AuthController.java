@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -25,6 +25,7 @@ public class AuthController {
     public ResponseEntity<ApiResponseDto<?>> signIn(@RequestBody AuthRequestDto authRequestDto
     ) {
         return ResponseEntity.status(HttpStatus.OK.value())
+                .header("Authorization", authService.signIn(authRequestDto))
                 .body(ApiResponseDto.response(200,
                         "로그인에 성공하였습니다.",
                         ""));
@@ -37,4 +38,6 @@ public class AuthController {
                         "회원가입에 성공하였습니다.",
                         authService.signUp(authRequestDto)));
     }
+
+    // TODO : schema 확인하기. 없다고 뜸
 }
