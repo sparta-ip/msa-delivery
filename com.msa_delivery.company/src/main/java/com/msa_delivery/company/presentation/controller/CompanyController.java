@@ -4,6 +4,7 @@ import com.msa_delivery.company.application.dto.CommonResponse;
 import com.msa_delivery.company.application.dto.CompanyDto;
 import com.msa_delivery.company.application.service.CompanyService;
 import com.msa_delivery.company.presentation.request.CompanyRequest;
+import com.msa_delivery.company.presentation.request.CompanyUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,28 @@ public class CompanyController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "업체 생성 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    @PutMapping("/{companyId}")
+    public ResponseEntity<?> updateCompany(@PathVariable UUID companyId,
+                                           @RequestBody CompanyUpdateRequest request,
+                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-Username") String username,
+                                           @RequestHeader("X-Role") String role) {
+        try {
+            CompanyDto company = companyService.updateCompany(companyId, request, userId, username, role);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "업체 수정이 완료되었습니다.", company)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "업체 수정 중 오류가 발생했습니다.")
             );
         }
     }

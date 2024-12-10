@@ -47,4 +47,13 @@ public class Company extends BaseEntity{
                 .type(type)
                 .build();
     }
+
+    public void update(Long managerId, String slackId, UUID hubId, String name, String address, CompanyType type) {
+        this.managerId = managerId;
+        this.slackId = slackId;
+        this.hubId = hubId;
+        this.name = name;
+        this.address = address;
+        this.type = type;
+    }
 }
