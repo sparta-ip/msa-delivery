@@ -1,6 +1,7 @@
 package com.msa_delivery.order.domain.model;
 
 import com.msa_delivery.order.application.dto.OrderRequestDto.Create;
+import com.msa_delivery.order.application.dto.OrderRequestDto.Update;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -57,5 +58,10 @@ public class Order extends BaseEntity {
             .status(String.valueOf(OrderStatus.SUCCESS))
             .build();
 
+    }
+
+    public void updateOrder(Update orderRequestDto) {
+        this.quantity = orderRequestDto.getQuantity();
+        this.request = orderRequestDto.getRequest();
     }
 }

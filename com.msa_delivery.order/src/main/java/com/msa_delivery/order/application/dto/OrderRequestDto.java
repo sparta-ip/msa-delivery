@@ -36,5 +36,24 @@ public class OrderRequestDto {
             this.quantity = quantity;
             this.request = request;
         }
+
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    public static class Update {
+
+        @NotNull(message = "상품 수량을 입력해주세요.")
+        private Integer quantity;
+
+        @NotNull(message = "납품 기한 일자 및 시간을 입력해주세요.")
+        private String request;
+
+        public Update(Integer quantity, String request) {
+            this.quantity = quantity;
+            this.request = request;
+        }
+
     }
 }

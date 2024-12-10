@@ -4,18 +4,23 @@ import com.msa_delivery.order.application.dto.CompanyDataDto;
 import com.msa_delivery.order.application.dto.HubDataDto;
 import com.msa_delivery.order.application.dto.OrderDataDto;
 import com.msa_delivery.order.application.dto.OrderRequestDto;
+import com.msa_delivery.order.application.dto.OrderRequestDto.Update;
 import com.msa_delivery.order.application.dto.ProductDataDto;
 import com.msa_delivery.order.application.dto.ResponseDto;
 import com.msa_delivery.order.application.exception.OrderCreationException;
+import com.msa_delivery.order.application.exception.OrderNotFoundException;
 import com.msa_delivery.order.application.exception.ProductNotFoundException;
 import com.msa_delivery.order.domain.model.Order;
 import com.msa_delivery.order.domain.repository.OrderRepository;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -33,6 +38,8 @@ public class OrderService {
     @Value("${googleai.api.key}")
     private String googleApiKey;
 
+    // 주문 생성
+    @Transactional
     public ResponseDto<OrderDataDto> createOrder(OrderRequestDto.Create orderRequestDto, String username) {
 
         try {
@@ -40,6 +47,9 @@ public class OrderService {
             ProductDataDto productData = productService.getProduct(orderRequestDto.getProduct_id());
             if (productData == null) {
                 throw new ProductNotFoundException("Product not found for id: " + orderRequestDto.getProduct_id());
+            }
+            if (productData.getQuantity() < orderRequestDto.getQuantity()) {
+                throw new OrderCreationException("Quantity exceeds maximum quantity");
             }
             productService.reduceProductQuantity(productData.getProduct_id(), orderRequestDto.getQuantity());
 
@@ -80,6 +90,62 @@ public class OrderService {
 
     }
 
+    // 특정 주문과 관련 있는 업체의 허브 ID 가져오기
+    @Transactional(readOnly = true)
+    public List<UUID> getHubIdByOrderId(UUID order_id) {
+        Order order = orderRepository.findById(order_id)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
+
+        // 업체 확인
+        CompanyDataDto receiverData = companyService.getCompany(order.getReceiver_id());
+        CompanyDataDto supplierData = companyService.getCompany(order.getSupplier_id());
+
+        if (receiverData == null || supplierData == null) {
+            throw new OrderCreationException("Receiver or Supplier not found.");
+        }
+
+        return List.of(receiverData.getHub_id(), supplierData.getHub_id());
+    }
+
+    // 주문 수정
+    @Transactional
+    public ResponseDto<OrderDataDto> updateOrder(UUID order_id, OrderRequestDto.Update orderRequestDto) {
+
+        // 주문 조회
+        Order order = orderRepository.findById(order_id)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
+
+        // 상품 확인
+        ProductDataDto productData = productService.getProduct(order.getProduct_id());
+        if (productData == null) {
+            throw new ProductNotFoundException("Product not found for id: " + order.getProduct_id());
+        }
+
+        // 기존 수량과 수정된 수량 차이 계산
+        int originalQuantity = order.getQuantity();
+        int newQuantity = orderRequestDto.getQuantity();
+
+        // 수정하려는 수량을 반영했을 때, 초기 상품 수량을 초과하는지 확인
+        if (productData.getQuantity() + originalQuantity < newQuantity) {
+            throw new OrderCreationException("Quantity exceeds available stock");
+        }
+
+        // 상품 수량 복구: 기존 수량을 다시 증가
+        productService.reduceProductQuantity(productData.getProduct_id(), -originalQuantity);
+
+        // 주문 수정
+        order.updateOrder(orderRequestDto);
+        Order updatedOrder = orderRepository.save(order);
+
+        // 상품 수량 감소: 수정된 수량만큼 줄임
+        productService.reduceProductQuantity(productData.getProduct_id(), newQuantity);
+
+        // 응답 데이터 생성
+        OrderDataDto orderDataDto = new OrderDataDto(updatedOrder);
+        return new ResponseDto<>(HttpStatus.OK.value(), "주문이 수정되었습니다.", orderDataDto);
+    }
+
+
     private ResponseDto<OrderDataDto> toResponseDto(HttpStatusCode statusCode, String message, Order order) {
 
         OrderDataDto orderDataDto = new OrderDataDto(
@@ -98,4 +164,5 @@ public class OrderService {
             orderDataDto
         );
     }
+
 }
