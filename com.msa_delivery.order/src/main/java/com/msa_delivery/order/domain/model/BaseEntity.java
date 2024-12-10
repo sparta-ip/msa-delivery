@@ -40,9 +40,12 @@ public class BaseEntity {
     @Column(name = "deleted_by", length = 255)
     private String deleted_by;
 
+    @Column(name = "is_deleted", length = 255)
+    private boolean is_deleted = false;
+
     @PrePersist
     protected void onCreate() {
-        this.created_at = LocalDateTime.now(); // 최초 생성 시점
+        this.created_at = LocalDateTime.now();
     }
 
     @PreUpdate
@@ -54,5 +57,6 @@ public class BaseEntity {
     public void delete(String deletedBy) {
         this.deleted_at = LocalDateTime.now();
         this.deleted_by = deletedBy;
+        this.is_deleted = true;
     }
 }
