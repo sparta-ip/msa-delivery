@@ -5,19 +5,20 @@ import com.msa_delivery.gateway.infrastructure.dtos.VerifyUserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Slf4j
@@ -29,8 +30,15 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
     @Value("${service.jwt.secret-key}")
     private String secretKey;
 
+    private static final String KEY_ALGORITHM = "HmacSHA256";
+
     public LocalJwtAuthenticationFilter(@Lazy AuthService authService) {
         this.authService = authService;
+    }
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        return new SecretKeySpec(keyBytes, KEY_ALGORITHM);
     }
 
     @Override
@@ -42,7 +50,9 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
 
         String token = extractToken(exchange);
 
-        if (token == null || !validateToken(token, exchange)) {
+        exchange = validateToken(token, exchange);
+
+        if (token == null || exchange.getResponse().getStatusCode() == HttpStatus.UNAUTHORIZED) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
@@ -59,9 +69,9 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
         return null;
     }
 
-    private boolean validateToken(String token, ServerWebExchange exchange) {
+    private ServerWebExchange validateToken(String token, ServerWebExchange exchange) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
+            SecretKey key = getSigningKey();
             Jws<Claims> claimsJws = Jwts.parser()
                     .verifyWith(key)
                     .build().parseSignedClaims(token);
@@ -69,7 +79,7 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
 
             Date expiration = claims.getExpiration();
             if (expiration.before(new Date())) {
-                return false;
+                return exchange;
             }
 
             if ((claims.get("userId") != null) || (claims.get("username") != null) || (claims.get("role") != null)) {
@@ -84,18 +94,21 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
                         .build());
 
                 if (verifiedUser) {
-                    exchange.getRequest().mutate()
-                            .header("X-User_Id", claims.get("userId").toString())
-                            .header("X-Username", claims.get("username").toString())
-                            .header("X-Role", claims.get("role").toString())
+                    ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                            .header("X-User_Id", userId)
+                            .header("X-Username", username)
+                            .header("X-Role", role)
                             .build();
-                    return true;
+
+                    // 교환의 요청을 업데이트
+                    exchange = exchange.mutate().request(mutatedRequest).build();
+                    return exchange;
                 }
             }
-            return false;
+            return exchange;
         } catch (Exception e) {
             log.info(e.getMessage());
-            return false;
+            return exchange;
         }
     }
 }

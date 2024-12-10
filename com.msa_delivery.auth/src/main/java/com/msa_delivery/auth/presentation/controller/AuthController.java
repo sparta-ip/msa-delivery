@@ -40,7 +40,7 @@ public class AuthController {
                         authService.signUp(authRequestDto)));
     }
 
-    @GetMapping("/verify")
+    @PostMapping("/verify")
     public Boolean verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
         return authService.verifyUser(verifyUserDto);
     }
