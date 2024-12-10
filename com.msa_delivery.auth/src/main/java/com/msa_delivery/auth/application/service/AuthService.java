@@ -4,6 +4,7 @@ import com.msa_delivery.auth.application.dtos.AuthRequestDto;
 import com.msa_delivery.auth.application.dtos.AuthResponseDto;
 import com.msa_delivery.auth.domain.entity.User;
 import com.msa_delivery.auth.domain.repository.UserRepository;
+import com.msa_delivery.auth.infrastructure.dtos.VerifyUserDto;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,29 @@ public class AuthService {
             throw new IllegalArgumentException("Please check username or password");
         }
         return createAccessToken(user);
+    }
+
+    public Boolean verifyUser(VerifyUserDto verifyUserDto) {
+        try {
+            Long longUserId = Long.valueOf(verifyUserDto.getUserId());
+            User user = userRepository.findById(longUserId).orElseThrow(()
+                    -> new IllegalArgumentException("Please check your id"));
+
+            if (!user.getUsername().equals(verifyUserDto.getUsername()) || !user.getRole().toString().equals(verifyUserDto.getRole())) {
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            log.info("Invalid userId format: {}",  e.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) {
+            log.info(e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.info("Unexpected error: {}", e.getMessage());
+            return false;
+        }
+
+        return true;
     }
 
     public String createAccessToken(User user) {

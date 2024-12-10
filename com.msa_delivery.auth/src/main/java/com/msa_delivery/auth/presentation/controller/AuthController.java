@@ -4,16 +4,14 @@ import com.msa_delivery.auth.application.dtos.ApiResponseDto;
 import com.msa_delivery.auth.application.dtos.AuthRequestDto;
 import com.msa_delivery.auth.application.dtos.AuthResponseDto;
 import com.msa_delivery.auth.application.service.AuthService;
+import com.msa_delivery.auth.infrastructure.dtos.VerifyUserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -40,5 +38,10 @@ public class AuthController {
                 .body(ApiResponseDto.response(HttpStatus.CREATED.value(),
                         "회원가입에 성공하였습니다.",
                         authService.signUp(authRequestDto)));
+    }
+
+    @GetMapping("/verify")
+    public Boolean verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
+        return authService.verifyUser(verifyUserDto);
     }
 }
