@@ -66,6 +66,8 @@ public class User {
                 .password(password)
                 .role(authRequestDto.getRole())
                 .slackId(authRequestDto.getSlackId())
+                .createdBy("SYSTEM")
+                .updatedBy("SYSTEM")
                 .build();
     }
 }
