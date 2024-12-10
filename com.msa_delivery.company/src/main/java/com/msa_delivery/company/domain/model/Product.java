@@ -23,6 +23,8 @@ public class Product extends BaseEntity{
 
     private UUID hudId;
 
+    private String name;
+
     private Integer price;
 
     private Integer quantity;
