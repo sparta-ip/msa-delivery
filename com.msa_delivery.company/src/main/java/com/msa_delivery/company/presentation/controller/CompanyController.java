@@ -21,17 +21,21 @@ public class CompanyController {
 
     @PostMapping
     public ResponseEntity<?> createCompany(@Valid @RequestBody CompanyRequest request,
+                                           @RequestHeader("X-User_Id") Long userId,
                                            @RequestHeader("X-Username") String username,
-                                           @RequestHeader("X-Role") String role,
-                                           @RequestHeader("X-Hub-Id") UUID hubId) {
+                                           @RequestHeader("X-Role") String role) {
         try {
-            CompanyDto company = companyService.createCompany(request, username, role, hubId);
+            CompanyDto company = companyService.createCompany(request, userId, username, role);
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     CommonResponse.success(HttpStatus.CREATED, "업체 생성이 완료되었습니다.", company)
             );
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, "권한이 없습니다.")
+                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "업체 생성 중 오류가 발생했습니다.")
             );
         }
     }

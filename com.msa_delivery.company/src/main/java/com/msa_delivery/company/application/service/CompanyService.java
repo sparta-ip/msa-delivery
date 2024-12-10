@@ -24,21 +24,28 @@ public class CompanyService {
     private final UserClient userClient;
     private final HubClient hubClient;
 
-    public CompanyDto createCompany(CompanyRequest request, String username, String role, UUID hubId) throws AccessDeniedException {
+    public CompanyDto createCompany(CompanyRequest request, Long userId, String username, String role) throws AccessDeniedException {
 
         String address = request.getAddress();  // 업체 주소
 
-        // 권한 체크
-        checkCreateRole(role, hubId, address);
+        // HubClient 연동 & HubMapper 이용
+        // HubMapper 를 통해 address 기반으로 hubName 추출
+        String hubName = HubMapper.getHubByAddress(HubMapper.getHubByAddress(address));
+        HubDto hub = hubClient.getHubs(hubName).getBody().getData();
+        UUID hubId= hub.getHubId(); // 업체 관리 허브 ID
+        Long hubManagerId = hub.getHubManagerId();  // 허브 담당자 ID;
 
-        String name = request.getName();    // 업체명
-        CompanyType type = CompanyType.fromString(request.getType());   // 업체 타입
+        // 권한 체크
+        checkCreateRole(role, userId, hubManagerId);
 
         // UserClient 연동
         // managerId 체크 후 userId, slackId 반환
         UserDto user = userClient.getUserById(request.getManagerId()).getBody().getData();
         Long managerId = user.getUserId();  // 업체 담당자 ID
         String slackId = user.getSlackId(); // 업체 담당자 Slack ID
+
+        String name = request.getName();    // 업체명
+        CompanyType type = CompanyType.fromString(request.getType());   // 업체 타입
 
         // create
         Company company = Company.create(managerId, slackId, hubId, name, address, type);
@@ -51,20 +58,15 @@ public class CompanyService {
         return CompanyDto.create(saveCompany);
     }
 
-    private void checkCreateRole(String role, UUID hubId, String address) throws AccessDeniedException {
+    private void checkCreateRole(String role, Long userId, Long hubManagerId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
                 break;
 
             case "HUB_MANAGER":
-                // HubClient 연동 & HubMapper 이용
-                // HubMapper 를 통해 address 기반으로 hubName 추출
-                String hubName = HubMapper.getHubByAddress(HubMapper.getHubByAddress(address));
-                HubDto hub = hubClient.getHubs(hubName).getBody().getData();
-                UUID hubIdFromHub = hub.getHubId(); // 업체 관리 허브 ID
                 // 요청 헤더의 허브 ID와 매핑된 허브 ID 비교
-                if (!hubId.equals(hubIdFromHub)) {
+                if (!userId.equals(hubManagerId)) {
                     throw new AccessDeniedException("해당 허브에서 업체를 생성할 권한이 없습니다.");
                 }
                 break;

@@ -11,5 +11,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class HubDto {
     private UUID hubId;
+    private Long hubManagerId;
     // HubDto 필드 추가
 }
