@@ -6,6 +6,8 @@ import com.msa_delivery.order.application.dto.OrderDataDto;
 import com.msa_delivery.order.application.dto.OrderRequestDto;
 import com.msa_delivery.order.application.dto.ProductDataDto;
 import com.msa_delivery.order.application.dto.ResponseDto;
+import com.msa_delivery.order.application.exception.OrderCreationException;
+import com.msa_delivery.order.application.exception.ProductNotFoundException;
 import com.msa_delivery.order.domain.model.Order;
 import com.msa_delivery.order.domain.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,32 +35,48 @@ public class OrderService {
 
     public ResponseDto<OrderDataDto> createOrder(OrderRequestDto.Create orderRequestDto, String username) {
 
-        // 상품 확인 및 수량 감소
-        ProductDataDto productData = productService.getProduct(orderRequestDto.getProduct_id());
-        productService.reduceProductQuantity(productData.getProduct_id(), orderRequestDto.getQuantity());
+        try {
+            // 상품 확인 및 수량 감소
+            ProductDataDto productData = productService.getProduct(orderRequestDto.getProduct_id());
+            if (productData == null) {
+                throw new ProductNotFoundException("Product not found for id: " + orderRequestDto.getProduct_id());
+            }
+            productService.reduceProductQuantity(productData.getProduct_id(), orderRequestDto.getQuantity());
 
-        // 업체 확인
-        CompanyDataDto receiverData = companyService.getCompany(orderRequestDto.getReceiver_id());
-        CompanyDataDto supplierData = companyService.getCompany(orderRequestDto.getSupplier_id());
+            // 업체 확인
+            CompanyDataDto receiverData = companyService.getCompany(orderRequestDto.getReceiver_id());
+            CompanyDataDto supplierData = companyService.getCompany(orderRequestDto.getSupplier_id());
 
-        // 주문 생성 및 저장
-        Order order = Order.createOrder(orderRequestDto);
-        Order savedOrder = orderRepository.save(order);
+            if (receiverData == null || supplierData == null) {
+                throw new OrderCreationException("Receiver or Supplier not found.");
+            }
 
-        // 배송 요청 생성
-        deliveryService.createDelivery(savedOrder, receiverData, supplierData);
+            // 주문 생성 및 저장
+            Order order = Order.createOrder(orderRequestDto);
+            Order savedOrder = orderRepository.save(order);
 
-        // 업체 허브 정보확인
-        HubDataDto receiverHubData = hubService.getHub(receiverData.getHub_id());
-        HubDataDto supplierHubData = hubService.getHub(supplierData.getHub_id());
+            // 배송 요청 생성
+            deliveryService.createDelivery(savedOrder, receiverData, supplierData);
 
-        // AI 예측 요청
-        String finalDeliveryTime = geminiService.predictFinalDeliveryTime(savedOrder, productData, receiverData, supplierHubData, receiverHubData);
-        log.info("최종 발송 시한: {}", finalDeliveryTime);
+            // 업체 허브 정보확인
+            HubDataDto receiverHubData = hubService.getHub(receiverData.getHub_id());
+            HubDataDto supplierHubData = hubService.getHub(supplierData.getHub_id());
 
-        // 응답 데이터 생성
-        OrderDataDto orderDataDto = new OrderDataDto(savedOrder);
-        return new ResponseDto<>(HttpStatus.OK.value(), "주문이 생성되었습니다.", orderDataDto);
+            // AI 예측 요청
+            String finalDeliveryTime = geminiService.predictFinalDeliveryTime(savedOrder, productData, receiverData, supplierHubData, receiverHubData);
+            log.info("최종 발송 시한: {}", finalDeliveryTime);
+
+            // 응답 데이터 생성
+            OrderDataDto orderDataDto = new OrderDataDto(savedOrder);
+            return new ResponseDto<>(HttpStatus.OK.value(), "주문이 생성되었습니다.", orderDataDto);
+
+        } catch (ProductNotFoundException | OrderCreationException e) {
+            // 예외가 발생한 경우, 전역 예외 처리기가 처리하도록 던짐
+            throw e;
+        } catch (Exception e) {
+            // 예기치 못한 예외 발생 시, OrderCreationException 처리
+            throw new OrderCreationException("주문 생성 중 예기치 못한 오류가 발생했습니다.");
+        }
 
     }
 
