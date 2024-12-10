@@ -1,4 +1,4 @@
-package com.msa_delivery.auth.controller;
+package com.msa_delivery.auth.presentation.controller;
 
 import com.msa_delivery.auth.application.dtos.ApiResponseDto;
 import com.msa_delivery.auth.application.dtos.AuthRequestDto;
