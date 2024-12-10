@@ -1,6 +1,7 @@
 package com.msa_delivery.gateway.application.filter;
 
 import com.msa_delivery.gateway.application.service.AuthService;
+import com.msa_delivery.gateway.infrastructure.dtos.VerifyUserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -58,7 +59,7 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
         return null;
     }
 
-    private boolean validateToken(String token,  ServerWebExchange exchange) {
+    private boolean validateToken(String token, ServerWebExchange exchange) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(secretKey));
             Jws<Claims> claimsJws = Jwts.parser()
@@ -71,9 +72,16 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
                 return false;
             }
 
-            if (claims.get("username") != null) {
+            if ((claims.get("userId") != null) || (claims.get("username") != null) || (claims.get("role") != null)) {
+                String userId = claims.get("userId").toString();
                 String username = claims.get("username").toString();
-                Boolean verifiedUser = authService.verifyUser(username);
+                String role = claims.get("role").toString();
+
+                Boolean verifiedUser = authService.verifyUser(VerifyUserDto.builder()
+                        .userId(userId)
+                        .username(username)
+                        .role(role)
+                        .build());
 
                 if (verifiedUser) {
                     exchange.getRequest().mutate()
