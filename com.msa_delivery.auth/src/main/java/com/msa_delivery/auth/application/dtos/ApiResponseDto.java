@@ -1,5 +1,6 @@
 package com.msa_delivery.auth.application.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 @Getter
@@ -9,11 +10,13 @@ import lombok.*;
 public class ApiResponseDto<T> {
     private int status;
     private String message;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private T data;
 
-    public static <T> ApiResponseDto<T> response(int serviceCode, String message, T data) {
+    public static <T> ApiResponseDto<T> response(int status, String message, T data) {
         return ApiResponseDto.<T>builder()
-                .status(serviceCode)
+                .status(status)
                 .message(message)
                 .data(data)
                 .build();

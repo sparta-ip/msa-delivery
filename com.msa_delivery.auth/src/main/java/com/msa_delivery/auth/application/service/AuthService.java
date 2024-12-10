@@ -67,8 +67,8 @@ public class AuthService {
 
     public String createAccessToken(User user) {
         return BEARER_PREFIX + Jwts.builder()
-                .claim("user_id", user.getUserId())
-                .claim("email", user.getUsername())
+                .claim("userId", user.getUserId())
+                .claim("username", user.getUsername())
                 .claim("role", user.getRole())
                 .issuer(issuer)
                 .issuedAt(new Date(System.currentTimeMillis()))
