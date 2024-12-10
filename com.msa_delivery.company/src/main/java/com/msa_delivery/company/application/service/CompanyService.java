@@ -114,6 +114,13 @@ public class CompanyService {
         company.delete(username);
     }
 
+    @Transactional(readOnly = true)
+    public CompanyDto getCompanyById(UUID companyId) {
+        Company company = companyRepository.findByIdAndIsDeleteFalse(companyId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
+        return CompanyDto.create(company);
+    }
+
     private void checkDeleteRole(String role, Long userId, UUID companyHubId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":

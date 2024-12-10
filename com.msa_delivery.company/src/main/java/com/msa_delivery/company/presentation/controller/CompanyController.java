@@ -84,5 +84,22 @@ public class CompanyController {
         }
     }
 
+    @GetMapping("/{companyId}")
+    public ResponseEntity<?> getCompanyById(@PathVariable UUID companyId) {
+        try {
+            CompanyDto company = companyService.getCompanyById(companyId);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "업체 상세 조회가 완료되었습니다.", company)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CommonResponse.error(HttpStatus.NOT_FOUND, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "업체 조회 중 오류가 발생했습니다.")
+            );
+        }
+    }
 
 }
