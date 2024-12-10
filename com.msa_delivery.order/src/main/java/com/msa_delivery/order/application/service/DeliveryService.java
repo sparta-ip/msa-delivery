@@ -6,6 +6,8 @@ import com.msa_delivery.order.application.dto.DeliveryResponseDto;
 import com.msa_delivery.order.application.dto.ResponseDto;
 import com.msa_delivery.order.application.feign.DeliveryClient;
 import com.msa_delivery.order.domain.model.Order;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,17 @@ public class DeliveryService {
             receiverData.getAddress()
         );
         ResponseDto<DeliveryResponseDto> response = deliveryClient.createDelivery(requestDto);
+        return response.getData();
+    }
+
+    // 특정 주문에 해당하는 배송 담당자 ID 목록 조회
+    public List<Long> getDeliveryManagerIdsByOrderId(UUID order_id) {
+        ResponseDto<List<Long>> response = deliveryClient.getDeliveryManagerIdsByOrderId(order_id);
+
+        if (response.getData() == null) {
+            throw new RuntimeException("배송 담당자 정보 조회 실패");
+        }
+
         return response.getData();
     }
 }
