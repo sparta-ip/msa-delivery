@@ -11,6 +11,7 @@ import com.msa_delivery.order.application.exception.OrderCreationException;
 import com.msa_delivery.order.application.exception.OrderNotFoundException;
 import com.msa_delivery.order.application.exception.ProductNotFoundException;
 import com.msa_delivery.order.domain.model.Order;
+import com.msa_delivery.order.domain.model.OrderStatus;
 import com.msa_delivery.order.domain.repository.OrderRepository;
 import java.util.List;
 import java.util.UUID;
@@ -145,7 +146,6 @@ public class OrderService {
         return new ResponseDto<>(HttpStatus.OK.value(), "주문이 수정되었습니다.", orderDataDto);
     }
 
-
     private ResponseDto<OrderDataDto> toResponseDto(HttpStatusCode statusCode, String message, Order order) {
 
         OrderDataDto orderDataDto = new OrderDataDto(
@@ -165,4 +165,33 @@ public class OrderService {
         );
     }
 
+    // 주문 삭제(취소)
+    @Transactional
+    public ResponseDto<OrderDataDto> deleteOrder(UUID order_id, String username) {
+        // 주문 조회
+        Order order = orderRepository.findById(order_id)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+
+        // 소프트 삭제 처리
+        order.delete(username);
+
+        // 주문 상태를 CANCELLED로 업데이트
+        order.updateStatus(OrderStatus.CANCELLED);
+
+        Order deletedOrder = orderRepository.save(order);
+
+        // 상품 확인
+        ProductDataDto productData = productService.getProduct(order.getProduct_id());
+        if (productData == null) {
+            throw new ProductNotFoundException("Product not found for id: " + order.getProduct_id());
+        }
+
+        // 상품 수량 복구: 기존 수량을 다시 증가
+        productService.reduceProductQuantity(productData.getProduct_id(), order.getQuantity());
+
+        // 응답 데이터 생성
+        OrderDataDto orderDataDto = new OrderDataDto(deletedOrder);
+        return new ResponseDto<>(HttpStatus.OK.value(), "주문이 삭제되었습니다.", orderDataDto);
+
+    }
 }
