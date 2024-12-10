@@ -63,5 +63,26 @@ public class CompanyController {
         }
     }
 
+    @DeleteMapping("/{companyId}")
+    public ResponseEntity<?> deleteCompany(@PathVariable UUID companyId,
+                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-Username") String username,
+                                           @RequestHeader("X-Role") String role) {
+        try {
+            companyService.deleteCompany(companyId, userId, username, role);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "업체 삭제가 완료되었습니다.")
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "업체 삭제 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
 
 }

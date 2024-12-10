@@ -100,6 +100,47 @@ public class CompanyService {
         return CompanyDto.create(company);
     }
 
+    @Transactional
+    public void deleteCompany(UUID companyId, Long userId, String username, String role) throws AccessDeniedException {
+        // 기존 데이터 조회
+        Company company = companyRepository.findByIdAndIsDeleteFalse(companyId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
+        Long companyManagerId = company.getManagerId(); // 기존 업체 담당자 ID
+        UUID companyHubId = company.getHubId();         // 기존 업체 허브 ID
+
+        // 권한 체크
+        checkDeleteRole(role, userId, companyHubId);
+
+        company.delete(username);
+    }
+
+    private void checkDeleteRole(String role, Long userId, UUID companyHubId) throws AccessDeniedException {
+        switch (role) {
+            case "MASTER":
+                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
+                break;
+
+            case "HUB_MANAGER":
+                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
+                HubDto hub = hubClient.getHubById(companyHubId).getBody().getData();
+                Long hubManagerId = hub.getHubManagerId();
+
+                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
+                if (!userId.equals(hubManagerId)) {
+                    throw new AccessDeniedException("해당 허브의 업체를 삭제할 권한이 없습니다.");
+                }
+                break;
+
+            case "DELIVERY_MANAGER":
+            case "COMPANY_MANAGER":
+                // 배송 담당자와 업체 담당자는 삭제 권한 없음
+                throw new AccessDeniedException("해당 권한으로는 업체를 삭제할 수 없습니다.");
+
+            default:
+                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
+        }
+    }
+
     private void checkCreateRole(String role, Long userId, Long hubManagerId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":

@@ -40,9 +40,9 @@ public abstract class BaseEntity {
 
     private Boolean isDelete = false;
 
-//    public void delete(String username) {
-//        this.deletedAt = LocalDateTime.now();
-//        this.deletedBy = username;
-//        this.isDelete = true;
-//    }
+    public void delete(String username) {
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = username;
+        this.isDelete = true;
+    }
 }
