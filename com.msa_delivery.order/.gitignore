@@ -37,3 +37,6 @@ out/
 .vscode/
 
 application.yml
+
+# Ignore all .log files
+*.log
