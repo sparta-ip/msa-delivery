@@ -21,6 +21,9 @@ public class Company extends BaseEntity{
     private Long managerId;
 
     @Column(nullable = false)
+    private String slackId;
+
+    @Column(nullable = false)
     private UUID hubId;
 
     @Column(nullable = false)
@@ -32,4 +35,16 @@ public class Company extends BaseEntity{
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private CompanyType type;
+
+    public static Company create(Long managerId, String slackId, UUID hubId, String name,
+                                 String address, CompanyType type) {
+        return Company.builder()
+                .managerId(managerId)
+                .slackId(slackId)
+                .hubId(hubId)
+                .name(name)
+                .address(address)
+                .type(type)
+                .build();
+    }
 }

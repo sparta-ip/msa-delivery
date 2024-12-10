@@ -14,6 +14,7 @@ import java.util.UUID;
 public class CompanyDto extends BaseDto {
     private UUID companyId;
     private Long managerId;
+    private String slackId;
     private UUID hubId;
     private String name;
     private String address;
@@ -23,6 +24,7 @@ public class CompanyDto extends BaseDto {
         CompanyDto dto = CompanyDto.builder()
                 .companyId(company.getId())
                 .managerId(company.getManagerId())
+                .slackId(company.getSlackId())
                 .hubId(company.getHubId())
                 .name(company.getName())
                 .address(company.getAddress())
