@@ -7,6 +7,7 @@ import com.msa_delivery.order.application.service.OrderService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,5 +55,16 @@ public class OrderController {
         @PathVariable UUID order_id
     ) {
         return orderService.deleteOrder(order_id, username);
+    }
+
+    // 주문 단건 조회
+    @GetMapping("/{order_id}")
+    public ResponseDto<OrderDataDto> getOrder(
+        @RequestHeader(value = "X-User_Id", required = true) String user_id,
+        @RequestHeader(value = "X-Username", required = true) String username,
+        @RequestHeader(value = "X-Role", required = true) String role,
+        @PathVariable UUID order_id
+    ) {
+        return orderService.getOrder(order_id);
     }
 }

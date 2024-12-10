@@ -146,25 +146,6 @@ public class OrderService {
         return new ResponseDto<>(HttpStatus.OK.value(), "주문이 수정되었습니다.", orderDataDto);
     }
 
-    private ResponseDto<OrderDataDto> toResponseDto(HttpStatusCode statusCode, String message, Order order) {
-
-        OrderDataDto orderDataDto = new OrderDataDto(
-            order.getOrder_id(),
-            order.getDelivery_id(),
-            order.getStatus(),
-            order.getCreated_at(),
-            order.getCreated_by(),
-            order.getUpdated_at(),
-            order.getUpdated_by()
-        );
-
-        return new ResponseDto<>(
-            statusCode.value(),
-            message,
-            orderDataDto
-        );
-    }
-
     // 주문 삭제(취소)
     @Transactional
     public ResponseDto<OrderDataDto> deleteOrder(UUID order_id, String username) {
@@ -193,5 +174,56 @@ public class OrderService {
         OrderDataDto orderDataDto = new OrderDataDto(deletedOrder);
         return new ResponseDto<>(HttpStatus.OK.value(), "주문이 삭제되었습니다.", orderDataDto);
 
+    }
+
+    // 주문 단건 조회
+    @Transactional(readOnly = true)
+    public ResponseDto<OrderDataDto> getOrder(UUID order_id) {
+        Order order = orderRepository.findById(order_id)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+
+        // 응답 데이터 생성
+        OrderDataDto orderDataDto = new OrderDataDto(order);
+        return new ResponseDto<>(HttpStatus.OK.value(), "주문이 조회되었습니다.", orderDataDto);
+    }
+
+    private ResponseDto<OrderDataDto> toResponseDto(HttpStatusCode statusCode, String message, Order order) {
+
+        OrderDataDto orderDataDto = new OrderDataDto(
+            order.getOrder_id(),
+            order.getDelivery_id(),
+            order.getStatus(),
+            order.getCreated_at(),
+            order.getCreated_by(),
+            order.getUpdated_at(),
+            order.getUpdated_by()
+        );
+
+        return new ResponseDto<>(
+            statusCode.value(),
+            message,
+            orderDataDto
+        );
+    }
+
+    // 업체의 업체 담당자 Id 가져오기
+    public List<Long> getCompanyManagersIdByOrderId(UUID order_id) {
+        Order order = orderRepository.findById(order_id)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
+
+        // 업체 확인
+        CompanyDataDto receiverData = companyService.getCompany(order.getReceiver_id());
+        CompanyDataDto supplierData = companyService.getCompany(order.getSupplier_id());
+
+        if (receiverData == null || supplierData == null) {
+            throw new OrderCreationException("Receiver or Supplier not found.");
+        }
+
+        return List.of(receiverData.getCompany_manager_id(), supplierData.getCompany_manager_id());
+    }
+
+    // 주문과 관련된 배송 담당자 ID 리스트 조회
+    public List<Long> getDeliveryManagerIdsByOrderId(UUID order_id) {
+        return deliveryService.getDeliveryManagerIdsByOrderId(order_id);
     }
 }
