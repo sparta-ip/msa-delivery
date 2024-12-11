@@ -43,14 +43,15 @@ public class UserController {
                         userService.getUser(userId, headerUserId, role)));
     }
 
-    @PutMapping("")
+    @PutMapping("/{username}")
     public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> updateUser(@Valid @RequestBody UserRequestDto userRequestDto,
+                                                                                @PathVariable String pathVariableUsername,
                                                                                 @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
                                                                                 @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
                                                                                 @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseDto.response(HttpStatus.OK.value(),
                         "유저 정보 수정에 성공하였습니다.",
-                        userService.updateUser(userRequestDto, userId, username, role)));
+                        userService.updateUser(userRequestDto, pathVariableUsername, userId, username, role)));
     }
 }

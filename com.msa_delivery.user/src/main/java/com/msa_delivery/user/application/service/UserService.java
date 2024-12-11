@@ -47,7 +47,7 @@ public class UserService {
 
     // dto의 username 기반으로 정보 변경. username은 변경 불가.
     @Transactional
-    public UserResponseDto updateUser(UserRequestDto userRequestDto, String userId, String username, String role) {
+    public UserResponseDto updateUser(UserRequestDto userRequestDto, String pathVariableUsername, String userId, String username, String role) {
         if (!role.equals(UserRoleEnum.MASTER.toString())) {
             throw new IllegalArgumentException("appropriate role required.");
         }
@@ -66,7 +66,7 @@ public class UserService {
          * TODO : userId를 배송에서 delivery_manager_id or receiver_id or receiver_slack_id로 검색 후 OUT_FOR_DELIVERY 이외의 값이 하나라도 있을 경우 수정 불가 로직 필요.
          */
 
-        User user = userRepository.findByUsername(userRequestDto.getUsername()).orElseThrow(()
+        User user = userRepository.findByUsername(pathVariableUsername).orElseThrow(()
                 -> new IllegalArgumentException("user not exist."));
 
         if (userRequestDto.getPassword() != null && !userRequestDto.getPassword().isEmpty()) {
