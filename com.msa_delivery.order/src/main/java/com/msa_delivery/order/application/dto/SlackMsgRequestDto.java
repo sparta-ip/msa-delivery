@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class SlackMsgRequestDto {
 
     private Long receiver_id;
+    private String receiver_slack_id;
     private String msg;
     private LocalDateTime send_time;
 

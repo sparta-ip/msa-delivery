@@ -330,7 +330,8 @@ public class OrderService {
             );
 
             // Slack 메시지 전송 (SlackMsg 클라이언트 호출)
-            slackMsgService.createSlackMsg(receiverData.getCompany_manager_id(),finalDeliveryDateTime, slackMessage);
+            slackMsgService.createSlackMsg(receiverData.getCompany_manager_id(),
+                receiverData.getSlack_id(), finalDeliveryDateTime, slackMessage);
 
             log.info("Slack 메시지를 전송했습니다: {}", finalDeliveryDateTime);
         } catch (Exception e) {
