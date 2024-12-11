@@ -28,4 +28,14 @@ public class Product extends BaseEntity{
     private Integer price;
 
     private Integer quantity;
+
+    public static Product create(Company company, UUID hubId, String name, Integer price, Integer quantity) {
+        return Product.builder()
+                .company(company)
+                .hudId(hubId)
+                .name(name)
+                .price(price)
+                .quantity(quantity)
+                .build();
+    }
 }
