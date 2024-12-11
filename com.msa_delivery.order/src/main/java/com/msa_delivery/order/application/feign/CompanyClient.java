@@ -18,7 +18,7 @@ public interface CompanyClient {
     @GetMapping("/api/products/{product_id}")
     ResponseDto<ProductDataDto> getProduct(@PathVariable UUID product_id);
 
-    @GetMapping("/products/{id}/reduceQuantity")
-    void reduceProductQuantity(@PathVariable("id") UUID product_id, @RequestParam("quantity") int quantity);
+    @GetMapping("/api/products/{product_id}/reduceQuantity")
+    void reduceProductQuantity(@PathVariable("product_id") UUID product_id, @RequestParam("quantity") int quantity);
 
 }
