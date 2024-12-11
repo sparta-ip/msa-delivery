@@ -35,4 +35,6 @@ public class UserDetailResponseDto {
         this.deletedBy = deletedBy;
         this.isDeleted = isDeleted;
     }
+
+
 }

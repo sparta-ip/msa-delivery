@@ -1,8 +1,9 @@
 package com.msa_delivery.user.presentation.controller;
 
-import com.msa_delivery.user.application.dtos.UserSearchDto;
 import com.msa_delivery.user.application.dtos.ApiResponseDto;
 import com.msa_delivery.user.application.dtos.UserDetailResponseDto;
+import com.msa_delivery.user.application.dtos.UserResponseDto;
+import com.msa_delivery.user.application.dtos.UserSearchDto;
 import com.msa_delivery.user.application.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,4 +31,14 @@ public class UserController {
                         userService.searchUsers(userSearchDto, userId, role)));
     }
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> getUser(@PathVariable String userId,
+                                                                   @RequestHeader(value = "X-User_Id", required = true) String headerUserId,
+                                                                   @RequestHeader(value = "X-Username", required = true) String username,
+                                                                   @RequestHeader(value = "X-Role", required = true) String role) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponseDto.response(HttpStatus.OK.value(),
+                        "조회에 성공하였습니다.",
+                        userService.getUser(userId, headerUserId, role)));
+    }
 }
