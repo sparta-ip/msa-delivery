@@ -6,6 +6,7 @@ import com.msa_delivery.order.application.dto.ResponseDto;
 import com.msa_delivery.order.application.service.OrderService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,7 +33,7 @@ public class OrderController {
         @RequestHeader(value = "X-Username", required = true) String username,
         @RequestHeader(value = "X-Role", required = true) String role) {
 
-        return orderService.createOrder(orderRequestDto,username);
+        return orderService.createOrder(orderRequestDto, username);
     }
 
     // 주문 수정
@@ -66,5 +68,22 @@ public class OrderController {
         @PathVariable UUID order_id
     ) {
         return orderService.getOrder(order_id);
+    }
+
+    // 주문 전체 조회 및 검색
+    @GetMapping
+    public ResponseEntity<ResponseDto<?>> getAllOrders(
+        @RequestParam(defaultValue = "1") int page_number,
+        @RequestParam(defaultValue = "10") int page_size,
+        @RequestParam(defaultValue = "created_at") String sort_by,
+        @RequestParam(defaultValue = "asc") String direction,
+        @RequestParam(required = false) String search,
+        @RequestHeader(value = "X-User_Id", required = true) String user_id,
+        @RequestHeader(value = "X-Username", required = true) String username,
+        @RequestHeader(value = "X-Role", required = true) String role
+    ) {
+        return ResponseEntity.ok(
+            orderService.getAllOrders(page_number - 1, page_size, sort_by, direction, search,
+                user_id, username, role));
     }
 }
