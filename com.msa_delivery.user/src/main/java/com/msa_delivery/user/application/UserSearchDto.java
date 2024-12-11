@@ -2,6 +2,7 @@ package com.msa_delivery.user.application;
 
 import com.msa_delivery.user.domain.entity.UserRoleEnum;
 import lombok.*;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 
@@ -11,15 +12,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserSearchDto {
 
-    private String username;       // 사용자 이름으로 검색
-    private UserRoleEnum role;     // 역할로 검색
-    private String slackId;        // Slack ID로 검색
-    private LocalDateTime createdAtStart;  // 생성일 시작
-    private LocalDateTime createdAtEnd;    // 생성일 종료
-    private LocalDateTime updatedAtStart;  // 수정일 시작
-    private LocalDateTime updatedAtEnd;    // 수정일 종료
-    private boolean isDeleted;     // 삭제 여부로 검색 (true/false)
+    private String username;
+    private UserRoleEnum role;
+    private String slackId;
+    private LocalDateTime createdAtStart;
+    private LocalDateTime createdAtEnd;
+    private LocalDateTime updatedAtStart;
+    private LocalDateTime updatedAtEnd;
+    private boolean isDeleted;
 
-    private int page;              // 페이지 번호
-    private int size;              // 페이지 크기
+    private int page = 1;
+    private int size;
+    private Sort sort;
 }

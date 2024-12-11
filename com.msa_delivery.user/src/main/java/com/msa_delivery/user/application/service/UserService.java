@@ -5,7 +5,6 @@ import com.msa_delivery.user.application.dtos.UserDetailResponseDto;
 import com.msa_delivery.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,9 +13,8 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // TODO : search는 querydsl을 사용하여 동적으로 구현 필요.(뤼튼에 물어봤음)
-    public Page<UserDetailResponseDto> searchOrders(UserSearchDto userSearchDto, Pageable pageable, String userId, String role) {
-
-        return null;
+    public Page<UserDetailResponseDto> searchUsers(UserSearchDto userSearchDto, String userId, String role) {
+        Long longUserId = Long.valueOf(userId);
+        return userRepository.searchUsers(userSearchDto, longUserId, role);
     }
 }
