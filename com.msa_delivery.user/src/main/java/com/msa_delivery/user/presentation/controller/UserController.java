@@ -45,13 +45,25 @@ public class UserController {
 
     @PutMapping("/{username}")
     public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> updateUser(@Valid @RequestBody UserRequestDto userRequestDto,
-                                                                                @PathVariable String pathVariableUsername,
+                                                                                @PathVariable String username,
                                                                                 @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
-                                                                                @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
+                                                                                @RequestHeader(value = "X-Username", required = true) @NotBlank String headerUsername,
                                                                                 @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseDto.response(HttpStatus.OK.value(),
                         "유저 정보 수정에 성공하였습니다.",
-                        userService.updateUser(userRequestDto, pathVariableUsername, userId, username, role)));
+                        userService.updateUser(userRequestDto, username, userId, headerUsername, role)));
+    }
+
+    @DeleteMapping("/{username}")
+    public ResponseEntity<ApiResponseDto<?>> softDeleteUser(@PathVariable String username,
+                                                            @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
+                                                            @RequestHeader(value = "X-Username", required = true) @NotBlank String headerUsername,
+                                                            @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {
+        userService.softDeleteUser(username, userId, headerUsername, role);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponseDto.response(HttpStatus.OK.value(),
+                        "해당 유저 삭제에 성공하였습니다.",
+                        ""));
     }
 }
