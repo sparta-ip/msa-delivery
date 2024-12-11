@@ -57,7 +57,7 @@ public class ProductRepositoryImpl implements JpaProductRepository {
     }
     // 허브 ID 확인
     private BooleanExpression eqHubId(UUID hubId) {
-        return hubId != null ? product.hudId.eq(hubId) : null;
+        return hubId != null ? product.hubId.eq(hubId) : null;
     }
 
     // 이름 포함 조건
@@ -110,9 +110,6 @@ public class ProductRepositoryImpl implements JpaProductRepository {
 
                 // 정렬 필드에 따른 OrderSpecifier 추가
                 switch (sortOrder.getProperty()) {
-                    case "hubId":
-                        orders.add(new OrderSpecifier<>(direction, product.company.hubId));
-                        break;
                     case "name":
                         orders.add(new OrderSpecifier<>(direction, product.name));
                         break;
