@@ -62,4 +62,25 @@ public class ProductController {
             );
         }
     }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<?> deleteProduct(@PathVariable UUID productId,
+                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-Username") String username,
+                                           @RequestHeader("X-Role") String role) {
+        try {
+            productService.deleteProduct(productId, userId, username, role);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "상품 삭제가 완료되었습니다.")
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "상품 삭제 중 오류가 발생했습니다.")
+            );
+        }
+    }
 }
