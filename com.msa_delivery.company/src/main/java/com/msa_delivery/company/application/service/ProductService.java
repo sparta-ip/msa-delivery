@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.UUID;
@@ -129,6 +131,16 @@ public class ProductService {
 
         // 다른 역할(MASTER, COMPANY_MANAGER, DELIVERY_MANAGER)은 모든 데이터를 검색 가능
         return productRepository.searchProducts(search, minPrice, maxPrice, minQuantity, maxQuantity, pageable, null);
+    }
+
+    @Transactional
+    public void reduceProductQuantity(UUID productId, int quantity) {
+        Product product = productRepository.findByIdAndIsDeleteFalse(productId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
+        if (product.getQuantity() < quantity) {
+            throw new IllegalArgumentException("수량이 부족합니다. 주문 가능 수량 : " + product.getQuantity());
+        }
+        product.reduceQuantity(quantity);
     }
 
     private void checkCreateRole(String role, Long userId, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {

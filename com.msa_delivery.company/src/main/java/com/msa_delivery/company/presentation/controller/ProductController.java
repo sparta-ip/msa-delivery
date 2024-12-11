@@ -133,4 +133,10 @@ public class ProductController {
             );
         }
     }
+
+    // 수량 감소
+    @GetMapping("/{productId}/reduceQuantity")
+    public void reduceProductQuantity(@PathVariable UUID productId, @RequestParam int quantity) {
+        productService.reduceProductQuantity(productId, quantity);
+    }
 }
