@@ -13,8 +13,8 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public Page<UserDetailResponseDto> searchUsers(UserSearchDto userSearchDto, String userId, String role) {
+    public Page<UserDetailResponseDto> searchUsers(UserSearchDto userSearchDto, String userId, String userRole) {
         Long longUserId = Long.valueOf(userId);
-        return userRepository.searchUsers(userSearchDto, longUserId, role);
+        return userRepository.searchUsers(userSearchDto, longUserId, userRole);
     }
 }

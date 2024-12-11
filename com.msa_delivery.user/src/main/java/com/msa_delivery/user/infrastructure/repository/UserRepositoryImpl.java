@@ -26,7 +26,7 @@ public class UserRepositoryImpl implements CustomUserRepository{
     public Page<UserDetailResponseDto> searchUsers(UserSearchDto searchDto, Long userId, String role) {
         int size = Math.max(searchDto.getSize(), 20);
         int page = Math.max(searchDto.getPage(), 1);
-        // TODO : 띄어쓰기 삭제, page, size가 움수일 시 기본 1, 20으로 설정하기
+        // TODO : 띄어쓰기 삭제 필요
         // 데이터 목록 쿼리 실행
         List<UserDetailResponseDto> users = queryFactory.select(new QUserDetailResponseDto(
                         user.userId,
@@ -45,10 +45,10 @@ public class UserRepositoryImpl implements CustomUserRepository{
                         checkMaster(userId, role),
                         usernameContains(searchDto.getUsername()),
                         findByRole(searchDto.getRole()),
-                        findBySlackId(searchDto.getSlackId()),
+                        slackIdContains(searchDto.getSlackId()),
                         findByCreatedAtBetween(searchDto.getCreatedAtStart(), searchDto.getCreatedAtEnd()),
                         findByUpdatedAtBetween(searchDto.getUpdatedAtStart(), searchDto.getUpdatedAtEnd()),
-                        findByIsDeleted(role, searchDto.isDeleted())
+                        findByIsDeleted(role, searchDto.getIsDeleted())
                 )
                 .offset((long) (page - 1) * size)
                 .limit(size)
@@ -60,10 +60,10 @@ public class UserRepositoryImpl implements CustomUserRepository{
                         checkMaster(userId, role),
                         usernameContains(searchDto.getUsername()),
                         findByRole(searchDto.getRole()),
-                        findBySlackId(searchDto.getSlackId()),
+                        slackIdContains(searchDto.getSlackId()),
                         findByCreatedAtBetween(searchDto.getCreatedAtStart(), searchDto.getCreatedAtEnd()),
                         findByUpdatedAtBetween(searchDto.getUpdatedAtStart(), searchDto.getUpdatedAtEnd()),
-                        findByIsDeleted(role, searchDto.isDeleted())
+                        findByIsDeleted(role, searchDto.getIsDeleted())
                 )
                 .fetch()
                 .size();
@@ -84,8 +84,8 @@ public class UserRepositoryImpl implements CustomUserRepository{
         return (role != null) ? user.role.eq(role) : null;
     }
 
-    private BooleanExpression findBySlackId(String slackId) {
-        return (slackId != null && !slackId.isEmpty()) ? user.slackId.eq(slackId) : null;
+    private BooleanExpression slackIdContains(String slackId) {
+        return (slackId != null && !slackId.isEmpty()) ? user.slackId.containsIgnoreCase(slackId) : null;
     }
 
     private BooleanExpression findByCreatedAtBetween(LocalDateTime start, LocalDateTime end) {
@@ -97,7 +97,7 @@ public class UserRepositoryImpl implements CustomUserRepository{
     }
 
     private BooleanExpression findByIsDeleted(String role, boolean isDeleted) {
-        return role.equals(UserRoleEnum.MASTER.toString()) ? user.isDeleted.eq(isDeleted) : null;
+        return role.equals(UserRoleEnum.MASTER.toString()) ? user.isDeleted.eq(isDeleted) : user.isDeleted.eq(false);
     }
 
 }

@@ -6,10 +6,13 @@ import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+/**
+ * ModelAttribute로 활용하는 dto 객체는 인자에 null 값이 들어올 수 있기 때문에 primitive 타입으로 해주고
+ * @NoArgsConstructor + @Setter 를 사용하거나 @AllArgsConstructor를 사용해서 바인딩 시켜준다.
+ * 다만, 초기값이 필요할 경우 @NoArgsConstructor + @Setter를 사용해 해결하는 것이 좋다.
+ */
+@Data
+@NoArgsConstructor
 public class UserSearchDto {
 
     private String username;
@@ -19,9 +22,9 @@ public class UserSearchDto {
     private LocalDateTime createdAtEnd;
     private LocalDateTime updatedAtStart;
     private LocalDateTime updatedAtEnd;
-    private boolean isDeleted;
+    private Boolean isDeleted = false;
 
-    private int page = 1;
-    private int size;
+    private Integer page = 1;
+    private Integer size = 20;
     private Sort sort;
 }
