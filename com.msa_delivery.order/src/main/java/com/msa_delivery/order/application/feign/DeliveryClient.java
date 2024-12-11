@@ -17,6 +17,6 @@ public interface DeliveryClient {
     ResponseDto<DeliveryResponseDto> createDelivery(DeliveryRequestDto deliveryRequestDto);
 
     // 특정 주문의 배송 담당자 ID 목록 조회
-    @GetMapping("/api/delivery-managers")
+    @GetMapping("/api/delivery-managers/order_id")
     ResponseDto<List<Long>> getDeliveryManagerIdsByOrderId(@RequestParam UUID order_id);
 }
