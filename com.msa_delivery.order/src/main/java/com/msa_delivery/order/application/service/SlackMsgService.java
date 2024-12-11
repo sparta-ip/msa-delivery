@@ -12,9 +12,11 @@ public class SlackMsgService {
 
     private final SlackMsgClient slackMsgClient;
 
-    public void createSlackMsg(Long receiver_id, LocalDateTime finalDeliveryDateTime, String msg) {
+    public void createSlackMsg(Long receiver_id, String receiver_slack_id,
+        LocalDateTime finalDeliveryDateTime, String msg) {
 
-        SlackMsgRequestDto slackMsgRequestDto = new SlackMsgRequestDto(receiver_id, msg, finalDeliveryDateTime);
+        SlackMsgRequestDto slackMsgRequestDto = new SlackMsgRequestDto(receiver_id,
+            receiver_slack_id, msg, finalDeliveryDateTime);
 
         slackMsgClient.createSlackMsg(slackMsgRequestDto);
     }
