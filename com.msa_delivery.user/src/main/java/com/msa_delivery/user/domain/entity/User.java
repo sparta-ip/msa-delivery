@@ -61,7 +61,7 @@ public class User {
     private boolean isDeleted = false;
 
     public void updateByUser(String username) {
-        this.updatedBy = username;
+        updatedBy = username;
     }
 
     public User update(UserRequestDto userRequestDto, String username) {
@@ -90,5 +90,16 @@ public class User {
         updateByUser(username);
 
         return this;
+    }
+
+    public void softDeleteUser(String username) {
+        isDeleted = true;
+        deletedAt = LocalDateTime.now();
+        deletedBy = username;
+        updateByUser(username);
+    }
+
+    public boolean getIsDeleted() {
+        return isDeleted;
     }
 }

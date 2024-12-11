@@ -29,12 +29,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponseDto getUser(String pathVariableUserId, String headerUserId, String role) {
-        if (!role.equals(UserRoleEnum.MASTER.toString()) && !pathVariableUserId.equals(headerUserId)) {
+    public UserResponseDto getUser(String userId, String headerUserId, String role) {
+        if (!role.equals(UserRoleEnum.MASTER.toString()) && !userId.equals(headerUserId)) {
             throw new IllegalArgumentException("Cannot look up other people's information.");
         }
 
-        Long longPathVariableUserId = Long.valueOf(pathVariableUserId);
+        Long longPathVariableUserId = Long.valueOf(userId);
         Long longHeaderUserId = Long.valueOf(headerUserId);
 
         User user = role.equals(UserRoleEnum.MASTER.toString()) ?
@@ -47,11 +47,41 @@ public class UserService {
 
     // dto의 username 기반으로 정보 변경. username은 변경 불가.
     @Transactional
-    public UserResponseDto updateUser(UserRequestDto userRequestDto, String pathVariableUsername, String userId, String username, String role) {
+    public UserResponseDto updateUser(UserRequestDto userRequestDto, String username, String userId, String headerUsername, String role) {
+        checkIsMaster(role);
+        verifyUserToAuth(userId, headerUsername, role);
+
+        User user = userRepository.findByUsername(username).orElseThrow(()
+                -> new IllegalArgumentException("user not exist."));
+
+        if (userRequestDto.getPassword() != null && !userRequestDto.getPassword().isEmpty()) {
+            String password = userRequestDto.getPassword();
+            String encodedPassword = passwordEncoder.encode(password);
+            return UserResponseDto.fromEntity(user.updateIfPasswordIn(userRequestDto, headerUsername, encodedPassword));
+        } else {
+            return UserResponseDto.fromEntity(user.update(userRequestDto, headerUsername));
+        }
+    }
+
+    @Transactional
+    public void softDeleteUser(String username, String userId, String headerUsername, String role) {
+        checkIsMaster(role);
+        verifyUserToAuth(userId, headerUsername, role);
+        /**
+         * TODO : userId를 배송에서 delivery_manager_id or receiver_id or receiver_slack_id로 검색 후 OUT_FOR_DELIVERY 이외의 값이 하나라도 있을 경우 삭제 불가 로직 필요.
+         */
+        User user = userRepository.findByUsername(username).orElseThrow(()
+                -> new IllegalArgumentException("user not exist."));
+        user.softDeleteUser(headerUsername);
+    }
+
+    private void checkIsMaster(String role) {
         if (!role.equals(UserRoleEnum.MASTER.toString())) {
             throw new IllegalArgumentException("appropriate role required.");
         }
+    }
 
+    private void verifyUserToAuth(String userId, String username, String role) {
         Boolean verifiedUser = authService.verifyUser(VerifyUserDto.builder()
                 .userId(userId)
                 .username(username)
@@ -60,21 +90,6 @@ public class UserService {
 
         if (!verifiedUser) {
             throw new IllegalArgumentException("invalid user.");
-        }
-
-        /**
-         * TODO : userId를 배송에서 delivery_manager_id or receiver_id or receiver_slack_id로 검색 후 OUT_FOR_DELIVERY 이외의 값이 하나라도 있을 경우 수정 불가 로직 필요.
-         */
-
-        User user = userRepository.findByUsername(pathVariableUsername).orElseThrow(()
-                -> new IllegalArgumentException("user not exist."));
-
-        if (userRequestDto.getPassword() != null && !userRequestDto.getPassword().isEmpty()) {
-            String password = userRequestDto.getPassword();
-            String encodedPassword = passwordEncoder.encode(password);
-            return UserResponseDto.fromEntity(user.updateIfPasswordIn(userRequestDto, username, encodedPassword));
-        } else {
-            return UserResponseDto.fromEntity(user.update(userRequestDto, username));
         }
     }
 }
