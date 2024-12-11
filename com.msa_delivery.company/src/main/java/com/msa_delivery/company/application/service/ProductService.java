@@ -10,6 +10,9 @@ import com.msa_delivery.company.infrastructure.client.HubDto;
 import com.msa_delivery.company.presentation.request.ProductRequest;
 import com.msa_delivery.company.presentation.request.ProductUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +105,30 @@ public class ProductService {
         checkReadyRole(role, userId, hubId);
 
         return ProductDto.create(product);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getProducts(String search, UUID hubId, Integer minPrice, Integer maxPrice,
+                                        Integer minQuantity, Integer maxQuantity, Long userId, String role, Pageable pageable) throws AccessDeniedException {
+
+        if (role.equals("HUB_MANAGER")) {
+            if (hubId == null) {
+                throw new IllegalArgumentException("허브 담당자는 허브 ID 가 필요합니다.");
+            }
+            // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
+            HubDto hub = hubClient.getHubById(hubId).getBody().getData();
+            Long hubManagerId = hub.getHubManagerId();
+
+            // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
+            if (!userId.equals(hubManagerId)) {
+                throw new AccessDeniedException("해당 허브 상품에 대한 권한이 없습니다.");
+            }
+            // 허브 ID로 필터링 추가
+            return productRepository.searchProducts(search, minPrice, maxPrice, minQuantity, maxQuantity, pageable, hubId);
+        }
+
+        // 다른 역할(MASTER, COMPANY_MANAGER, DELIVERY_MANAGER)은 모든 데이터를 검색 가능
+        return productRepository.searchProducts(search, minPrice, maxPrice, minQuantity, maxQuantity, pageable, null);
     }
 
     private void checkCreateRole(String role, Long userId, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {

@@ -1,12 +1,17 @@
 package com.msa_delivery.company.presentation.controller;
 
 import com.msa_delivery.company.application.dto.CommonResponse;
+import com.msa_delivery.company.application.dto.CompanyDto;
 import com.msa_delivery.company.application.dto.ProductDto;
 import com.msa_delivery.company.application.service.ProductService;
 import com.msa_delivery.company.presentation.request.ProductRequest;
 import com.msa_delivery.company.presentation.request.ProductUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -100,6 +105,31 @@ public class ProductController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "상품 조회 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getProducts(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "hub_id", required = false) UUID hubId,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(required = false) Integer minQuantity,
+            @RequestParam(required = false) Integer maxQuantity,
+            @RequestHeader("X-User_Id") Long userId,
+            @RequestHeader("X-Role") String role,
+            Pageable pageable) {
+        try {
+            Page<ProductDto> products =
+                    productService.getProducts(search, hubId, minPrice, maxPrice, minQuantity, maxQuantity, userId, role, pageable);
+
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", products)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "검색 중 오류가 발생했습니다.")
             );
         }
     }
