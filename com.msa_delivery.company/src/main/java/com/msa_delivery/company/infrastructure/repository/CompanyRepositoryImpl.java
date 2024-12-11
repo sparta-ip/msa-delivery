@@ -7,7 +7,6 @@ import com.msa_delivery.company.domain.model.QCompany;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.msa_delivery.company.domain.model.QCompany.company;
+
 @RequiredArgsConstructor
 public class CompanyRepositoryImpl implements JpaCompanyRepository {
 
@@ -24,8 +25,6 @@ public class CompanyRepositoryImpl implements JpaCompanyRepository {
 
     @Override
     public Page<CompanyDto> searchCompanies(String type, String search, String sortBy, String direction, Pageable pageable) {
-        QCompany company = QCompany.company;
-
         // 동적 검색 조건
         BooleanExpression condition = buildCondition(type, search);
 
@@ -65,8 +64,6 @@ public class CompanyRepositoryImpl implements JpaCompanyRepository {
         if (search != null) {
             condition = condition.and(
                     company.name.containsIgnoreCase(search) // 이름 검색
-                            .or(company.managerId.stringValue().containsIgnoreCase(search)) // 담당자 ID 검색
-                            .or(Expressions.stringTemplate("cast({0} as string)", company.hubId).containsIgnoreCase(search))    // 허브 ID 검색
                             .or(company.address.containsIgnoreCase(search)) // 주소 검색
             );
         }
@@ -88,10 +85,6 @@ public class CompanyRepositoryImpl implements JpaCompanyRepository {
         switch (sortBy) {
             case "name":
                 return new OrderSpecifier<>(order, company.name);
-            case "managerId":
-                return new OrderSpecifier<>(order, company.managerId);
-            case "hubId":
-                return new OrderSpecifier<>(order, company.hubId);
             case "address":
                 return new OrderSpecifier<>(order, company.address);
             case "createdAt":
