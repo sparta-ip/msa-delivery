@@ -125,8 +125,8 @@ public class CompanyService {
 
     @Transactional(readOnly = true)
     public Page<CompanyDto> getCompanies(String type, String search, String sortBy, String direction, Pageable pageable) {
-        Page<Company> companies = companyRepository.searchCompanies(type, search, sortBy, direction, pageable);
-        return companies.map(CompanyDto::create);
+        Page<CompanyDto> companies = companyRepository.searchCompanies(type, search, sortBy, direction, pageable);
+        return companies;
     }
 
     private void checkDeleteRole(String role, Long userId, UUID companyHubId) throws AccessDeniedException {

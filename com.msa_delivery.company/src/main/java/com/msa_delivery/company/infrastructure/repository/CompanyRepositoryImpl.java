@@ -1,5 +1,6 @@
 package com.msa_delivery.company.infrastructure.repository;
 
+import com.msa_delivery.company.application.dto.CompanyDto;
 import com.msa_delivery.company.domain.model.Company;
 import com.msa_delivery.company.domain.model.CompanyType;
 import com.msa_delivery.company.domain.model.QCompany;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class CompanyRepositoryImpl implements JpaCompanyRepository {
@@ -21,7 +23,7 @@ public class CompanyRepositoryImpl implements JpaCompanyRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Company> searchCompanies(String type, String search, String sortBy, String direction, Pageable pageable) {
+    public Page<CompanyDto> searchCompanies(String type, String search, String sortBy, String direction, Pageable pageable) {
         QCompany company = QCompany.company;
 
         // 동적 검색 조건
@@ -43,7 +45,12 @@ public class CompanyRepositoryImpl implements JpaCompanyRepository {
                 .where(condition)
                 .fetchCount();
 
-        return new PageImpl<>(results, pageable, totalCount);
+        // 검색 결과를 DTO로 변환
+        List<CompanyDto> content = results.stream()
+                .map(CompanyDto::create)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(content, pageable, totalCount);
     }
 
     private BooleanExpression buildCondition(String type, String search) {
