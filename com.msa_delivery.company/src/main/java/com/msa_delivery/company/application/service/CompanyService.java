@@ -12,6 +12,8 @@ import com.msa_delivery.company.infrastructure.client.UserDto;
 import com.msa_delivery.company.presentation.request.CompanyRequest;
 import com.msa_delivery.company.presentation.request.CompanyUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,6 +121,12 @@ public class CompanyService {
         Company company = companyRepository.findByIdAndIsDeleteFalse(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
         return CompanyDto.create(company);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CompanyDto> getCompanies(String type, String search, String sortBy, String direction, Pageable pageable) {
+        Page<Company> companies = companyRepository.searchCompanies(type, search, sortBy, direction, pageable);
+        return companies.map(CompanyDto::create);
     }
 
     private void checkDeleteRole(String role, Long userId, UUID companyHubId) throws AccessDeniedException {

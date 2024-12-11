@@ -7,6 +7,8 @@ import com.msa_delivery.company.presentation.request.CompanyRequest;
 import com.msa_delivery.company.presentation.request.CompanyUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,6 +100,29 @@ public class CompanyController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "업체 조회 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getCompanies(
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page_size", defaultValue = "10") int pageSize,
+            @RequestParam(value = "page_number", defaultValue = "0") int pageNumber,
+            @RequestParam(value = "sort_by", defaultValue = "createdAt") String sortBy,
+            @RequestParam(value = "direction", defaultValue = "asc") String direction
+    ) {
+        try {
+            PageRequest pageable = PageRequest.of(pageNumber, pageSize);
+            Page<CompanyDto> companies = companyService.getCompanies(type, search, sortBy, direction, pageable);
+
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", companies)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "검색 중 오류가 발생했습니다.")
             );
         }
     }
