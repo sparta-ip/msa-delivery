@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SlackMsgRequestDto {
 
-    private LocalDateTime finalDeliveryTime;
+    private Long receiver_id;
     private String msg;
+    private LocalDateTime send_time;
+
 }
