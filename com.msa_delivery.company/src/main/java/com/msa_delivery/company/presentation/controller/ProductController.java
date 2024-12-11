@@ -83,4 +83,24 @@ public class ProductController {
             );
         }
     }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<?> getProductById(@PathVariable UUID productId,
+                                            @RequestHeader("X-User_Id") Long userId,
+                                            @RequestHeader("X-Role") String role) {
+        try {
+            ProductDto product = productService.getProductById(productId, userId, role);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "상품 상세 조회가 완료되었습니다.", product)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CommonResponse.error(HttpStatus.NOT_FOUND, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "상품 조회 중 오류가 발생했습니다.")
+            );
+        }
+    }
 }

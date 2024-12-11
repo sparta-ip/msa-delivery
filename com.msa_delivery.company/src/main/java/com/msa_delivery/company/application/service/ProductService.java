@@ -91,6 +91,19 @@ public class ProductService {
         product.delete(username);
     }
 
+    @Transactional(readOnly = true)
+    public ProductDto getProductById(UUID productId, Long userId, String role) throws AccessDeniedException {
+        // 상품 확인
+        Product product = productRepository.findByIdAndIsDeleteFalse(productId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 상품을 찾을 수 없습니다."));
+
+        // 권한 확인
+        UUID hubId = product.getHubId();
+        checkReadyRole(role, userId, hubId);
+
+        return ProductDto.create(product);
+    }
+
     private void checkCreateRole(String role, Long userId, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
@@ -174,6 +187,32 @@ public class ProductService {
             case "COMPANY_MANAGER":
                 // 배송 담당자와 업체 담당자는 삭제 권한 없음
                 throw new AccessDeniedException("해당 권한으로는 업체를 삭제할 수 없습니다.");
+
+            default:
+                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
+        }
+    }
+
+    private void checkReadyRole(String role, Long userId, UUID companyHubId) throws AccessDeniedException {
+        switch (role) {
+            case "MASTER":
+            case "DELIVERY_MANAGER":
+            case "COMPANY_MANAGER":
+                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
+                // DELIVERY_MANAGER, COMPANY_MANAGER 는 모든 조회 및 검색 가능
+                break;
+
+            case "HUB_MANAGER":
+                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
+                HubDto hub = hubClient.getHubById(companyHubId).getBody().getData();
+                Long hubManagerId = hub.getHubManagerId();
+
+                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
+                if (!userId.equals(hubManagerId)) {
+                    throw new AccessDeniedException("해당 업체의 상품을 조회할 권한이 없습니다.");
+                }
+                break;
+
 
             default:
                 throw new IllegalArgumentException("유효하지 않은 권한입니다.");

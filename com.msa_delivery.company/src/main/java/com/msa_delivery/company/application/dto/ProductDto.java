@@ -14,7 +14,7 @@ import java.util.UUID;
 public class ProductDto extends BaseDto {
     private UUID productId;
     private UUID companyId;
-    private UUID hudId;
+    private UUID hubId;
     private String name;
     private Integer price;
     private Integer quantity;
@@ -23,7 +23,7 @@ public class ProductDto extends BaseDto {
         ProductDto dto = ProductDto.builder()
                 .productId(product.getId())
                 .companyId(product.getCompany().getId())
-                .hudId(product.getHudId())
+                .hubId(product.getHubId())
                 .name(product.getName())
                 .price(product.getPrice())
                 .quantity(product.getQuantity())
