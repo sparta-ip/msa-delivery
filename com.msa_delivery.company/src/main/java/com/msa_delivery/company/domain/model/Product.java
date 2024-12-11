@@ -21,7 +21,7 @@ public class Product extends BaseEntity{
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
-    private UUID hudId;
+    private UUID hubId;
 
     private String name;
 
@@ -32,10 +32,18 @@ public class Product extends BaseEntity{
     public static Product create(Company company, UUID hubId, String name, Integer price, Integer quantity) {
         return Product.builder()
                 .company(company)
-                .hudId(hubId)
+                .hubId(hubId)
                 .name(name)
                 .price(price)
                 .quantity(quantity)
                 .build();
+    }
+
+    public void update(Company company, UUID hubId, String name, Integer price, Integer quantity) {
+        this.company = company;
+        this.hubId = hubId;
+        this.name = name;
+        this.price = price;
+        this.quantity = quantity;
     }
 }
