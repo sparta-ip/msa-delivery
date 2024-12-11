@@ -1,19 +1,24 @@
 package com.msa_delivery.user.application.dtos;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
-public class ApiPageResponseDto<T> extends ApiResponseDto<T>{
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class ApiPageResponseDto<T> extends ApiResponseDto<List<T>>{
     private int size;
     private int number;
-    private int totalElements;
+    private long totalElements;
     private int totalPages;
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private T data;
+    public ApiPageResponseDto(int status, String message, int number, int size, long totalElements, int totalPages, List<T> data) {
+        super(status, message, data);
+        this.number = number;
+        this.size = size;
+        this.totalElements = totalElements;
+        this.totalPages = totalPages;
+    }
 }
