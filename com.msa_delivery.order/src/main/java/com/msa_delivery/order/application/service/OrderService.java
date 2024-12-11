@@ -14,6 +14,8 @@ import com.msa_delivery.order.domain.model.Order;
 import com.msa_delivery.order.domain.model.OrderStatus;
 import com.msa_delivery.order.domain.repository.OrderRepository;
 import com.msa_delivery.order.domain.repository.OrderRepositoryCustom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ public class OrderService {
     private final DeliveryService deliveryService;
     private final GeminiService geminiService;
     private final HubService hubService;
+    private final SlackMsgService slackMsgService;
 
     private final OrderRepository orderRepository;
 
@@ -98,6 +101,10 @@ public class OrderService {
                     productData, receiverData, supplierHubData, receiverHubData);
                 log.info("최종 발송 시한: {}", finalDeliveryTime);
 
+                // Slack 메시지 전송
+                sendSlackMessage(savedOrder,
+                    productData, receiverData, supplierHubData, receiverHubData, finalDeliveryTime);
+
                 // 응답 데이터 생성
                 OrderDataDto orderDataDto = new OrderDataDto(savedOrder);
                 return new ResponseDto<>(HttpStatus.OK.value(), "주문이 생성되었습니다.", orderDataDto);
@@ -122,23 +129,6 @@ public class OrderService {
             throw new OrderCreationException("주문 생성 중 예기치 못한 오류가 발생했습니다.");
         }
 
-    }
-
-    // 특정 주문과 관련 있는 업체의 허브 ID 가져오기
-    @Transactional(readOnly = true)
-    public List<UUID> getHubIdByOrderId(UUID order_id) {
-        Order order = orderRepository.findById(order_id)
-            .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
-
-        // 업체 확인
-        CompanyDataDto receiverData = companyService.getCompany(order.getReceiver_id());
-        CompanyDataDto supplierData = companyService.getCompany(order.getSupplier_id());
-
-        if (receiverData == null || supplierData == null) {
-            throw new OrderCreationException("Receiver or Supplier not found.");
-        }
-
-        return List.of(receiverData.getHub_id(), supplierData.getHub_id());
     }
 
     // 주문 수정
@@ -304,6 +294,65 @@ public class OrderService {
         } catch (Exception e) {
             throw new AccessDeniedException("권한이 없습니다.");
         }
+    }
+
+    // 슬랙메시지에 전달한 발송시한 값 추출하기
+    public void sendSlackMessage(Order order, ProductDataDto productData,
+        CompanyDataDto receiverData, HubDataDto supplierHubData, HubDataDto receiverHubData,
+        String finalDeliveryTime) {
+        try {
+            // 응답에서 날짜 및 시간 추출 (예: "12월 10일 09:00")
+            String dateStr = finalDeliveryTime.replace("- 최종 발송 시한: ", "").trim();
+
+            // "12월 10일 09:00"을 LocalDateTime으로 변환
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM월 dd일 HH:mm");
+            LocalDateTime finalDeliveryDateTime = LocalDateTime.parse(dateStr, formatter);
+
+            String slackMessage = String.format(
+                "**주문 번호**: %s\n" +
+                    "**주문자 정보**: %s / %s\n" +
+                    "**상품 정보**: %s\n" +
+                    "**요청 사항**: %s\n" +
+                    "**발송지**: %s\n" +
+                    "**경유지**: %s\n" +
+                    "**도착지**: %s\n" +
+                    "**배송 ID**: %s\n\n" +
+                    "위 내용을 기반으로 도출된 최종 발송 시한은 %s 입니다.",
+                order.getOrder_id(),
+                receiverData.getSlack_id(),
+                productData.getName() + " " + order.getQuantity() + "박스",
+                order.getRequest() + "까지 보내주세요!",
+                supplierHubData.getName(),
+                receiverHubData.getName(),
+                receiverData.getAddress(),
+                order.getDelivery_id(),
+                finalDeliveryTime
+            );
+
+            // Slack 메시지 전송 (SlackMsg 클라이언트 호출)
+            slackMsgService.createSlackMsg(finalDeliveryDateTime, slackMessage);
+
+            log.info("Slack 메시지를 전송했습니다: {}", finalDeliveryDateTime);
+        } catch (Exception e) {
+            log.error("Slack 메시지 전송 중 오류 발생: {}", e.getMessage());
+        }
+    }
+
+    // 특정 주문과 관련 있는 업체의 허브 ID 가져오기
+    @Transactional(readOnly = true)
+    public List<UUID> getHubIdByOrderId(UUID order_id) {
+        Order order = orderRepository.findById(order_id)
+            .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
+
+        // 업체 확인
+        CompanyDataDto receiverData = companyService.getCompany(order.getReceiver_id());
+        CompanyDataDto supplierData = companyService.getCompany(order.getSupplier_id());
+
+        if (receiverData == null || supplierData == null) {
+            throw new OrderCreationException("Receiver or Supplier not found.");
+        }
+
+        return List.of(receiverData.getHub_id(), supplierData.getHub_id());
     }
 
     // 업체의 업체 담당자 Id 가져오기
