@@ -1,5 +1,6 @@
 package com.msa_delivery.user.domain.entity;
 
+import com.msa_delivery.user.application.dtos.UserRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -58,4 +59,36 @@ public class User {
 
     @Column(name = "is_deleted")
     private boolean isDeleted = false;
+
+    public void updateByUser(String username) {
+        this.updatedBy = username;
+    }
+
+    public User update(UserRequestDto userRequestDto, String username) {
+        if (userRequestDto.getRole() != null) {
+            role = userRequestDto.getRole();
+        }
+        if (userRequestDto.getSlackId() != null) {
+            slackId = userRequestDto.getSlackId();
+        }
+
+        updateByUser(username);
+
+        return this;
+    }
+
+    public User updateIfPasswordIn(UserRequestDto userRequestDto, String username, String password) {
+        this.password = password;
+
+        if (userRequestDto.getRole() != null) {
+            role = userRequestDto.getRole();
+        }
+        if (userRequestDto.getSlackId() != null) {
+            slackId = userRequestDto.getSlackId();
+        }
+
+        updateByUser(username);
+
+        return this;
+    }
 }

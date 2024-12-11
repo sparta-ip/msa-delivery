@@ -20,6 +20,11 @@ public class GlobalExceptionHandler {
         return createExceptionResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<RestApiException> numberFormatException(NumberFormatException ex) {
+        return createExceptionResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestApiException> methodArgumentNotValidException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
