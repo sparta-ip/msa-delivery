@@ -6,19 +6,25 @@ import com.msa_delivery.order.application.dto.OrderDataDto;
 import com.msa_delivery.order.application.dto.OrderRequestDto;
 import com.msa_delivery.order.application.dto.ProductDataDto;
 import com.msa_delivery.order.application.dto.ResponseDto;
+import com.msa_delivery.order.application.exception.AccessDeniedException;
 import com.msa_delivery.order.application.exception.OrderCreationException;
 import com.msa_delivery.order.application.exception.OrderNotFoundException;
 import com.msa_delivery.order.application.exception.ProductNotFoundException;
 import com.msa_delivery.order.domain.model.Order;
 import com.msa_delivery.order.domain.model.OrderStatus;
 import com.msa_delivery.order.domain.repository.OrderRepository;
+import com.msa_delivery.order.domain.repository.OrderRepositoryCustom;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +40,8 @@ public class OrderService {
     private final HubService hubService;
 
     private final OrderRepository orderRepository;
+
+    private final OrderRepositoryCustom orderRepositoryCustom;
 
     @Value("${googleai.api.key}")
     private String googleApiKey;
@@ -215,24 +223,87 @@ public class OrderService {
         return new ResponseDto<>(HttpStatus.OK.value(), "주문이 조회되었습니다.", orderDataDto);
     }
 
-    private ResponseDto<OrderDataDto> toResponseDto(HttpStatusCode statusCode, String message,
-        Order order) {
-
-        OrderDataDto orderDataDto = new OrderDataDto(
-            order.getOrder_id(),
-            order.getDelivery_id(),
-            order.getStatus(),
-            order.getCreated_at(),
-            order.getCreated_by(),
-            order.getUpdated_at(),
-            order.getUpdated_by()
+    // 주문 전체 조회 및 검색
+    @Transactional(readOnly = true)
+    public ResponseDto<Page<OrderDataDto>> getAllOrders(int page, int size, String sortBy,
+        String direction, String search, String user_id, String username, String role) {
+        // 페이지네이션 및 정렬 설정
+        PageRequest pageRequest = PageRequest.of(
+            page,
+            size,
+            Sort.by(Sort.Direction.fromString(direction), sortBy)
         );
 
-        return new ResponseDto<>(
-            statusCode.value(),
-            message,
-            orderDataDto
-        );
+        // 주문 전체 조회 (검색 조건 포함)
+        Page<Order> orderPage = orderRepositoryCustom.findOrdersWithSearch(pageRequest, search);
+
+        // 주문 리스트 필터링 (권한 검증)
+        List<Order> filteredOrders = orderPage.stream()
+            .filter(order -> {
+                try {
+                    return checkUserRoleForOrder(order, user_id, role);
+                } catch (AccessDeniedException e) {
+                    return false; // 권한이 없으면 해당 주문 제외
+                }
+            })
+            .collect(Collectors.toList());
+
+        // 필터링된 주문들을 DTO로 변환
+        Page<OrderDataDto> orderDataDtos = new PageImpl<>(filteredOrders.stream()
+            .map(OrderDataDto::new)
+            .collect(Collectors.toList()), pageRequest, orderPage.getTotalElements());
+
+        return new ResponseDto<>(HttpStatus.OK.value(), "조회가 완료되었습니다.", orderDataDtos);
+    }
+
+    // 주문 전체 조회 및 검색에서 권한 검증 로직
+    private boolean checkUserRoleForOrder(Order order, String user_id, String role)
+        throws AccessDeniedException {
+        try {
+            Long userId = Long.parseLong(user_id); // String -> Long 변환
+
+            // 1. 마스터 관리자 권한이 있는 경우 통과
+            if ("MASTER".equals(role)) {
+                return true;
+            }
+
+            // 2. 허브 관리자인 경우, 해당 주문의 허브와 연결된 사용자인지 검증
+            if ("HUB_MANAGER".equals(role)) {
+                List<UUID> hubIdsOfOrder = getHubIdByOrderId(order.getOrder_id());
+                boolean hasAccess = hubIdsOfOrder.stream().anyMatch(hub_id -> {
+                    try {
+                        Long hubManagerId = hubService.getHub(hub_id).getHub_manager_id();
+                        return hubManagerId != null && hubManagerId.equals(userId);
+                    } catch (Exception e) {
+                        throw new AccessDeniedException("허브 관리자 권한이 없습니다.");
+                    }
+                });
+                if (hasAccess) {
+                    return true;
+                }
+            }
+
+            // 3. 업체 담당자는 본인 주문만 조회 가능
+            if ("COMPANY_MANAGER".equals(role)) {
+                List<Long> companyManagersId = getCompanyManagersIdByOrderId(order.getOrder_id());
+                if (companyManagersId.contains(userId)) {
+                    return true;
+                }
+            }
+
+            // 4. 배송 담당자는 본인 주문만 조회 가능
+            if ("DELIVERY_MANAGER".equals(role)) {
+                List<Long> deliveryManagerIds = getDeliveryManagerIdsByOrderId(order.getOrder_id());
+                if (deliveryManagerIds.contains(userId)) {
+                    return true;
+                }
+            }
+
+            // 권한이 없으면 false 반환
+            return false;
+        } catch (Exception e) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
     }
 
     // 업체의 업체 담당자 Id 가져오기
@@ -255,4 +326,5 @@ public class OrderService {
     public List<Long> getDeliveryManagerIdsByOrderId(UUID order_id) {
         return deliveryService.getDeliveryManagerIdsByOrderId(order_id);
     }
+
 }
