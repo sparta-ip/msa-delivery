@@ -1,7 +1,6 @@
 package com.msa_delivery.company.presentation.controller;
 
 import com.msa_delivery.company.application.dto.CommonResponse;
-import com.msa_delivery.company.application.dto.CompanyDto;
 import com.msa_delivery.company.application.dto.ProductDto;
 import com.msa_delivery.company.application.service.ProductService;
 import com.msa_delivery.company.presentation.request.ProductRequest;
@@ -9,9 +8,7 @@ import com.msa_delivery.company.presentation.request.ProductUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
