@@ -1,6 +1,6 @@
 package com.msa_delivery.user.application.service;
 
-import com.msa_delivery.user.application.UserSearchDto;
+import com.msa_delivery.user.application.dtos.UserSearchDto;
 import com.msa_delivery.user.application.dtos.UserDetailResponseDto;
 import com.msa_delivery.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

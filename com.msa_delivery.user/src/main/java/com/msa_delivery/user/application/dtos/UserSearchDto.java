@@ -1,8 +1,8 @@
-package com.msa_delivery.user.application;
+package com.msa_delivery.user.application.dtos;
 
 import com.msa_delivery.user.domain.entity.UserRoleEnum;
-import lombok.*;
-import org.springframework.data.domain.Sort;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -26,5 +26,6 @@ public class UserSearchDto {
 
     private Integer page = 1;
     private Integer size = 20;
-    private Sort sort;
+    private String[] sort;
+    private String[] direction;
 }

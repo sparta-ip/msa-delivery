@@ -1,6 +1,6 @@
 package com.msa_delivery.user.presentation.controller;
 
-import com.msa_delivery.user.application.UserSearchDto;
+import com.msa_delivery.user.application.dtos.UserSearchDto;
 import com.msa_delivery.user.application.dtos.ApiResponseDto;
 import com.msa_delivery.user.application.dtos.UserDetailResponseDto;
 import com.msa_delivery.user.application.service.UserService;
@@ -29,4 +29,5 @@ public class UserController {
                         "조회에 성공하였습니다.",
                         userService.searchUsers(userSearchDto, userId, role)));
     }
+
 }
