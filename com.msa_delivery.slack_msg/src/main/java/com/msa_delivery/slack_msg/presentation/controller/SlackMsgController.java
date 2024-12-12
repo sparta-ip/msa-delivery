@@ -7,6 +7,7 @@ import com.msa_delivery.slack_msg.application.service.SlackMsgService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +58,15 @@ public class SlackMsgController {
     }
 
     // 슬랙 메시지 조회
+    @GetMapping("/{slack_msg_id}")
+    public ResponseDto<SlackMsgDataDto> getSlackMsg(
+        @RequestParam UUID slack_msg_id,
+        @RequestHeader(value = "X-User_Id", required = true) String user_id,
+        @RequestHeader(value = "X-Username", required = true) String username,
+        @RequestHeader(value = "X-Role", required = true) String role) {
+
+        return slackMsgService.getSlackMsg(slack_msg_id);
+    }
 
     // 슬랙 메시지 전체 조회 및 검색
 }
