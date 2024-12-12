@@ -18,6 +18,4 @@ public class DeliveryManagerRequest {
     private String type;
 
     private UUID hubId;
-    private Integer sequence;
-
 }
