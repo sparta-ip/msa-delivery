@@ -30,9 +30,18 @@ public class DeliveryManagerService {
         Long id = user.getUserId();
         String slackId = user.getSlackId();
 
+        // 배송 담당자 타입
+        UUID hubId = request.getHubId();
         DeliveryManagerType type = DeliveryManagerType.fromString(request.getType());
-        HubDto hub = hubClient.getHubById(request.getHubId()).getBody().getData();
-        UUID hubId = hub.getHubId();
+        // 업체 배송 담당자는 허브 ID 필수
+        if (type == DeliveryManagerType.COMPANY_DELIVERY_MANAGER) {
+            if (hubId != null) {
+                HubDto hub = hubClient.getHubById(request.getHubId()).getBody().getData();
+                hubId = hub.getHubId();
+            } else {
+                throw new IllegalArgumentException("허브 ID 를 입력해주세요.");
+            }
+        }
 
         // 최대 시퀀스 값 가져오기
         Integer maxSequence = deliveryManagerRepository.findMaxSequence();
