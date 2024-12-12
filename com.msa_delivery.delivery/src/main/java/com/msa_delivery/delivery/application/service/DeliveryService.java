@@ -13,10 +13,11 @@ import com.msa_delivery.delivery.infrastructure.client.UserDto;
 import com.msa_delivery.delivery.presentation.request.DeliveryRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @Service
@@ -145,5 +146,13 @@ public class DeliveryService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송을 찾을 수 없습니다."));
 
         return DeliveryDto.create(delivery);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DeliveryDto> getDeliveries(String search, String deliveryStatus, UUID departureId, UUID arrivalId, Long deliveryManagerId,
+                                           Long receiverId, String createdFrom, String createdTo, Long userId, String role, Pageable pageable) {
+        Page<DeliveryDto> deliveries = deliveryRepository.searchDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
+                receiverId, createdFrom, createdTo, pageable);
+        return deliveries;
     }
 }
