@@ -8,6 +8,8 @@ import com.msa_delivery.delivery.domain.repository.DeliveryManagerRepository;
 import com.msa_delivery.delivery.domain.repository.DeliveryRouteRepository;
 import com.msa_delivery.delivery.presentation.request.DeliveryRouteRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,6 +103,14 @@ public class DeliveryRouteService {
 
         return DeliveryRouteDto.create(route);
     }
+
+    @Transactional(readOnly = true)
+    public Page<DeliveryRouteDto> getRoutes(String deliveryStatus, UUID departureId, UUID arrivalId, Long deliveryManagerId,
+                                            String createdFrom, String createdTo, Long userId, String role, Pageable pageable) {
+        return deliveryRouteRepository.searchRoutes(deliveryStatus, departureId, arrivalId, deliveryManagerId,
+                createdFrom, createdTo, pageable);
+    }
+
 
     // 배송 경로의 배송 상태 업데이트
     @Transactional
