@@ -1,6 +1,6 @@
 package com.msa_delivery.hub.infrastrcture.kakao;
 
-import com.msa_delivery.hub.infrastrcture.kakao.dto.KaKaoGeoResponse;
+import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
