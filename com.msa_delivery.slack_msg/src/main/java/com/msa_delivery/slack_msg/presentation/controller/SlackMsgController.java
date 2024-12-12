@@ -6,6 +6,7 @@ import com.msa_delivery.slack_msg.application.dto.SlackMsgRequestDto;
 import com.msa_delivery.slack_msg.application.service.SlackMsgService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,4 +70,18 @@ public class SlackMsgController {
     }
 
     // 슬랙 메시지 전체 조회 및 검색
+    @GetMapping
+    public ResponseEntity<ResponseDto<?>> getSlackMsgs(
+        @RequestParam(defaultValue = "1") int page_number,
+        @RequestParam(defaultValue = "10") int page_size,
+        @RequestParam(defaultValue = "created_at") String sort_by,
+        @RequestParam(defaultValue = "asc") String direction,
+        @RequestParam(required = false) String search,
+        @RequestHeader(value = "X-User_Id", required = true) String user_id,
+        @RequestHeader(value = "X-Username", required = true) String username,
+        @RequestHeader(value = "X-Role", required = true) String role) {
+
+        return ResponseEntity.ok(
+            slackMsgService.getSlackMsgs(page_number - 1, page_size, sort_by, direction, search));
+    }
 }
