@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/com.msa_delivery.slack_msg.iml" filepath="$PROJECT_DIR$/.idea/com.msa_delivery.slack_msg.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1094606983/slack_msg.main.iml" filepath="$PROJECT_DIR$/.idea/modules/1094606983/slack_msg.main.iml" />
     </modules>
   </component>
 </project>

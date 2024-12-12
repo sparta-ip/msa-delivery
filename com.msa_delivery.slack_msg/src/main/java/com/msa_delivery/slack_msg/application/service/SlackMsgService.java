@@ -111,6 +111,28 @@ public class SlackMsgService {
         }
     }
 
+    @Transactional
+    public ResponseDto<SlackMsgDataDto> deleteSlackMsg(UUID slack_msg_id, String username) {
+        try {
+            // 메시지 조회
+            SlackMsg slackMsg = slackMsgRepository.findById(slack_msg_id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Slack 메시지입니다."));
+
+            // 소프트 삭제 처리
+            slackMsg.delete(username);
+
+            // 응답 데이터 생성
+            SlackMsgDataDto slackMsgDataDto = new SlackMsgDataDto(slackMsg);
+            return new ResponseDto<>(HttpStatus.OK.value(), "슬랙 메시지가 삭제되었습니다.", slackMsgDataDto);
+
+        } catch (DataAccessException dataAccessException) {
+            log.error("데이터베이스 오류 발생: {}", dataAccessException.getMessage(), dataAccessException);
+            return new ResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "슬랙 메시지 수정에 실패했습니다.", null);
+        } catch (Exception e) {
+            log.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
+            return new ResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "알 수 없는 오류가 발생했습니다.", null);
+        }
+    }
 
     private void sendSlackMessage(SlackRequestDto slackRequestDto) {
         try {
@@ -121,4 +143,6 @@ public class SlackMsgService {
             throw feignException;
         }
     }
+
+
 }
