@@ -36,4 +36,17 @@ public class Delivery extends BaseEntity{
 
     @OneToOne(mappedBy = "delivery")
     private DeliveryRoute deliveryRoute;
+
+    public static Delivery create(UUID orderId, DeliveryManager deliveryManager, Long receiverId, String receiverSlackId, UUID departureId, UUID arrivalId, DeliveryStatus deliveryStatus, String address) {
+        return Delivery.builder()
+                .orderId(orderId)
+                .deliveryManager(deliveryManager)
+                .receiverId(receiverId)
+                .receiverSlackId(receiverSlackId)
+                .departureId(departureId)
+                .arrivalId(arrivalId)
+                .deliveryStatus(deliveryStatus)
+                .address(address)
+                .build();
+    }
 }

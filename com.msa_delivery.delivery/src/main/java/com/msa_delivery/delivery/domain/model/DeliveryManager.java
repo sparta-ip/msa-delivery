@@ -34,4 +34,8 @@ public class DeliveryManager extends BaseEntity{
     @Builder.Default
     @OneToMany(mappedBy = "deliveryManager", fetch = FetchType.LAZY)
     private List<Delivery> deliveries = new ArrayList<>();
+
+    public void updateOrderId(UUID orderId) {
+        this.orderId = orderId;
+    }
 }
