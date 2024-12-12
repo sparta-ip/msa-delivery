@@ -13,7 +13,7 @@ public class SlackMsgRequestDto {
     @Getter
     @Builder
     @NoArgsConstructor
-    public static class From {
+    public static class Create {
 
         @NotNull(message = "수신자 ID를 입력해주세요.")
         private Long receiver_id;
@@ -27,7 +27,7 @@ public class SlackMsgRequestDto {
         @NotNull(message = "최종 발송 시한을 입력해주세요.")
         private LocalDateTime send_time;
 
-        public From (Long receiver_id, String receiver_slack_id, String msg, LocalDateTime send_time) {
+        public Create (Long receiver_id, String receiver_slack_id, String msg, LocalDateTime send_time) {
             this.receiver_id = receiver_id;
             this.receiver_slack_id = receiver_slack_id;
             this.msg = msg;
@@ -38,20 +38,19 @@ public class SlackMsgRequestDto {
     @Getter
     @Builder
     @NoArgsConstructor
-    public static class Create {
+    public static class Update {
 
-        @NotNull(message = "수신자 ID를 입력해주세요.")
         private Long receiver_id;
 
+        private String receiver_slack_id;
 
-        @NotNull(message = "메시지 내용을 입력해주세요.")
         private String msg;
 
-        @NotNull(message = "최종 발송 시한을 입력해주세요.")
         private LocalDateTime send_time;
 
-        public Create (Long receiver_id, String msg, LocalDateTime send_time) {
+        public Update (Long receiver_id,String receiver_slack_id, String msg, LocalDateTime send_time) {
             this.receiver_id = receiver_id;
+            this.receiver_slack_id = receiver_slack_id;
             this.msg = msg;
             this.send_time = send_time;
         }

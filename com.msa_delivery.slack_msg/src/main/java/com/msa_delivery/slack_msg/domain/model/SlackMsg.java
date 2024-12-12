@@ -28,6 +28,9 @@ public class SlackMsg extends BaseEntity{
     private Long receiver_id;
 
     @Column(nullable = false)
+    private String receiver_slack_id;
+
+    @Column(nullable = false)
     private String msg;
 
     @Column(nullable = false)
@@ -38,9 +41,25 @@ public class SlackMsg extends BaseEntity{
         return SlackMsg.builder()
             .slack_msg_id(UUID.randomUUID())
             .receiver_id(slackMsgRequestDto.getReceiver_id())
+            .receiver_slack_id(slackMsgRequestDto.getReceiver_slack_id())
             .msg(slackMsgRequestDto.getMsg())
             .send_time(slackMsgRequestDto.getSend_time())
             .build();
+    }
+
+    public void updateSlackMsg(Long receiver_id, String receiver_slack_id, String msg, LocalDateTime send_time) {
+        if (receiver_id != null) {
+            this.receiver_id = receiver_id;
+        }
+        if (receiver_slack_id != null && !receiver_slack_id.isEmpty()) {
+            this.receiver_slack_id = receiver_slack_id;
+        }
+        if (msg != null && !msg.isEmpty()) {
+            this.msg = msg;
+        }
+        if (send_time != null) {
+            this.send_time = send_time;
+        }
     }
 
 }
