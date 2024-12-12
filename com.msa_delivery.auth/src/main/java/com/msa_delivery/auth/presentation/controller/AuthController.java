@@ -25,19 +25,13 @@ public class AuthController {
     @PostMapping("/sign-in")
     public ResponseEntity<ApiResponseDto<?>> signIn(@RequestBody AuthRequestDto authRequestDto
     ) {
-        return ResponseEntity.status(HttpStatus.OK.value())
-                .header("Authorization", authService.signIn(authRequestDto))
-                .body(ApiResponseDto.response(200,
-                        "로그인에 성공하였습니다.",
-                        ""));
+        return authService.signIn(authRequestDto);
     }
 
     @PostMapping("/sign-up")
     public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseDto.response(HttpStatus.CREATED.value(),
-                        "회원가입에 성공하였습니다.",
-                        authService.signUp(authRequestDto)));
+                .body(authService.signUp(authRequestDto));
     }
 
     @PostMapping("/verify")

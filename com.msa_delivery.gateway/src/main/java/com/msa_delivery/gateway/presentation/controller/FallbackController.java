@@ -16,7 +16,7 @@ public class FallbackController {
         String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Get" + requestUri + "is currently unavailable. Please try again later.",
+                        "Get : " + requestUri + "is currently unavailable. Please try again later.",
                         "")));
     }
 
@@ -25,7 +25,7 @@ public class FallbackController {
         String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Post" + requestUri + "is currently unavailable. Please try again later.",
+                        "Post : " + requestUri + "is currently unavailable. Please try again later.",
                         "")));
     }
 
@@ -34,7 +34,7 @@ public class FallbackController {
         String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Put" + requestUri + "is currently unavailable. Please try again later.",
+                        "Put : " + requestUri + "is currently unavailable. Please try again later.",
                         "")));
     }
 
@@ -43,7 +43,7 @@ public class FallbackController {
         String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Delete" + requestUri + "is currently unavailable. Please try again later.",
+                        "Delete : " + requestUri + "is currently unavailable. Please try again later.",
                         "")));
     }
 
