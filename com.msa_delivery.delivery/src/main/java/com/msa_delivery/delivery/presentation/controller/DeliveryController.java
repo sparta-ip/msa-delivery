@@ -84,4 +84,24 @@ public class DeliveryController {
             );
         }
     }
+
+    @GetMapping("/{deliveryId}")
+    public ResponseEntity<?> getDeliveryById(@PathVariable UUID deliveryId,
+                                            @RequestHeader("X-User_Id") Long userId,
+                                            @RequestHeader("X-Role") String role) {
+        try {
+            DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, role);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", delivery)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CommonResponse.error(HttpStatus.NOT_FOUND, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 조회 중 오류가 발생했습니다.")
+            );
+        }
+    }
 }

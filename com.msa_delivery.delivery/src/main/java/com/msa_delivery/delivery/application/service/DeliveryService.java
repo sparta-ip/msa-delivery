@@ -137,4 +137,13 @@ public class DeliveryService {
 
         delivery.delete(username);
     }
+
+    @Transactional(readOnly = true)
+    public DeliveryDto getDeliveryById(UUID deliveryId, Long userId, String role) {
+        // 기존 데이터 조회
+        Delivery delivery = deliveryRepository.findByIdAndIsDeleteFalse(deliveryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송을 찾을 수 없습니다."));
+
+        return DeliveryDto.create(delivery);
+    }
 }
