@@ -37,4 +37,19 @@ public class DeliveryRoute extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
+
+    public static DeliveryRoute create(Delivery delivery, DeliveryManager deliveryManager, Integer sequence, UUID departureId, UUID arrivalId, Integer expectDistance, Integer expectDuration, Integer distance, Integer duration, DeliveryStatus deliveryStatus) {
+        return DeliveryRoute.builder()
+                .delivery(delivery)
+                .deliveryManager(deliveryManager)
+                .sequence(sequence)
+                .departureId(departureId)
+                .arrivalId(arrivalId)
+                .expectDistance(expectDistance)
+                .expectDuration(expectDuration)
+                .distance(distance)
+                .duration(duration)
+                .deliveryStatus(deliveryStatus)
+                .build();
+    }
 }
