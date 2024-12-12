@@ -94,6 +94,14 @@ public class DeliveryRouteService {
         route.delete(username);
     }
 
+    @Transactional(readOnly = true)
+    public DeliveryRouteDto getRouteById(UUID deliveryRouteId, Long userId, String role) {
+        DeliveryRoute route = deliveryRouteRepository.findByIdAndIsDeleteFalse(deliveryRouteId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송 경로를 찾을 수 없습니다."));
+
+        return DeliveryRouteDto.create(route);
+    }
+
     // 배송 경로의 배송 상태 업데이트
     @Transactional
     public void updateRouteStatus(UUID deliveryId, DeliveryStatus deliveryStatus) {
