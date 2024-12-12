@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/delivery-routes")
+@RequestMapping("/api/delivery-managers")
 @RequiredArgsConstructor
 public class DeliveryManagerController {
 
