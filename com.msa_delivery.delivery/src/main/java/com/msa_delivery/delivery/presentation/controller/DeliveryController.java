@@ -51,7 +51,7 @@ public class DeliveryController {
         try {
             DeliveryDto delivery = deliveryService.updateDelivery(deliveryId, request, userId, username, role);
             return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 생성이 완료되었습니다.", delivery)
+                    CommonResponse.success(HttpStatus.CREATED, "배송 정보 수정이 완료되었습니다.", delivery)
             );
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
@@ -59,7 +59,28 @@ public class DeliveryController {
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 생성 중 오류가 발생했습니다.")
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 정보 수정 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    @DeleteMapping("/{deliveryId}")
+    public ResponseEntity<?> deleteDelivery(@PathVariable UUID deliveryId,
+                                            @RequestHeader("X-User_Id") String userId,
+                                            @RequestHeader("X-Username") String username,
+                                            @RequestHeader("X-Role") String role) {
+        try {
+            deliveryService.deleteDelivery(deliveryId, userId, username, role);
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    CommonResponse.success(HttpStatus.CREATED, "배송 정보 삭제가 완료되었습니다.")
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 정보 삭제 중 오류가 발생했습니다.")
             );
         }
     }

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @Service
@@ -126,5 +127,14 @@ public class DeliveryService {
         delivery.update(receiverId, receiverSlackId, deliveryStatus);
         delivery.setUpdatedBy(username);
         return DeliveryDto.create(delivery);
+    }
+
+    @Transactional
+    public void deleteDelivery(UUID deliveryId, String userId, String username, String role) {
+        // 기존 데이터 조회
+        Delivery delivery = deliveryRepository.findByIdAndIsDeleteFalse(deliveryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송을 찾을 수 없습니다."));
+
+        delivery.delete(username);
     }
 }
