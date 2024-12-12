@@ -3,6 +3,7 @@ package com.msa_delivery.delivery.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -33,7 +34,10 @@ public class DeliveryRoute extends BaseEntity{
     private Integer expectDistance;
     private Integer expectDuration;
     private Integer distance;
-    private Integer duration;
+    private Integer duration;   // (분)
+
+    private LocalDateTime startTime; // 이동 시작 시간
+    private LocalDateTime endTime;   // 이동 완료 시간
 
     @Enumerated(EnumType.STRING)
     private DeliveryStatus deliveryStatus;
@@ -54,6 +58,22 @@ public class DeliveryRoute extends BaseEntity{
     }
 
     public void updateStatus(DeliveryStatus deliveryStatus) {
+        // 상태 변경
+        if (deliveryStatus == DeliveryStatus.IN_HUB_TRANSFER) {
+            this.startTime = LocalDateTime.now();
+        } else if (deliveryStatus == DeliveryStatus.ARRIVED_AT_DESTINATION_HUB) {
+            this.endTime = LocalDateTime.now();
+            if (this.startTime != null) {
+                this.duration = (int) java.time.Duration.between(this.startTime, this.endTime).toMinutes();
+                this.distance = expectDistance;     // 일단 허브 도착하면 예상 값으로 업데이트 하도록
+            }
+        }
         this.deliveryStatus = deliveryStatus;
+    }
+
+    public void update(DeliveryManager newManager, Integer distance, Integer duration) {
+        this.deliveryManager = newManager;
+        this.distance = distance;
+        this.duration = duration;
     }
 }
