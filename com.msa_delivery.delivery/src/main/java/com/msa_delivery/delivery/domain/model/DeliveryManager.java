@@ -46,8 +46,17 @@ public class DeliveryManager extends BaseEntity{
                 .build();
     }
 
+    public void update(DeliveryManagerType type, UUID hubId, Integer sequence) {
+        this.type = type;
+        this.hubId = hubId;
+        this.sequence = sequence;
+    }
 
     public void updateOrderId(UUID orderId) {
         this.orderId = orderId;
+    }
+
+    public void updateSequence(int sequence) {
+        this.sequence = sequence;
     }
 }
