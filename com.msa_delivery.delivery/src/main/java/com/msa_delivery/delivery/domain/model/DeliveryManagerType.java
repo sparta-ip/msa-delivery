@@ -10,6 +10,6 @@ public enum DeliveryManagerType {
         return Arrays.stream(DeliveryManagerType.values())
                 .filter(enumValue -> enumValue.name().equalsIgnoreCase(type))   // 대소문자 구분 X
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("해당 업체 유형이 존재하지 않습니다.: " + type));
+                .orElseThrow(() -> new IllegalArgumentException("해당 유형이 존재하지 않습니다.: " + type));
     }
 }

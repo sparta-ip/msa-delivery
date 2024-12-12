@@ -1,15 +1,20 @@
 package com.msa_delivery.delivery.application.service;
 
 import com.msa_delivery.delivery.application.dto.DeliveryCreateDto;
+import com.msa_delivery.delivery.application.dto.DeliveryDto;
 import com.msa_delivery.delivery.domain.model.*;
 import com.msa_delivery.delivery.domain.repository.DeliveryManagerRepository;
 import com.msa_delivery.delivery.domain.repository.DeliveryRepository;
 import com.msa_delivery.delivery.domain.repository.DeliveryRouteRepository;
 import com.msa_delivery.delivery.infrastructure.client.HubRouteClient;
 import com.msa_delivery.delivery.infrastructure.client.HubRouteDto;
+import com.msa_delivery.delivery.infrastructure.client.UserClient;
+import com.msa_delivery.delivery.infrastructure.client.UserDto;
 import com.msa_delivery.delivery.presentation.request.DeliveryRequest;
+import com.msa_delivery.delivery.presentation.request.DeliveryUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -20,9 +25,12 @@ public class DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final DeliveryRouteRepository deliveryRouteRepository;
     private final DeliveryManagerRepository deliveryManagerRepository;
+    private final DeliveryRouteService deliveryRouteService;
     private final DeliveryManagerService deliveryManagerService;
     private final HubRouteClient hubRouteClient;
+    private final UserClient userClient;
 
+    @Transactional
     public DeliveryCreateDto createDelivery(DeliveryRequest request, String userId, String username, String role) {
         // TODO: 배송 권한 검증
         // 배송 생성
@@ -85,5 +93,38 @@ public class DeliveryService {
         deliveryRouteRepository.save(deliveryRoute);
         deliveryRoute.setCreatedBy(username);
         return deliveryRoute;
+    }
+
+    @Transactional
+    public DeliveryDto updateDelivery(UUID deliveryId, DeliveryUpdateRequest request, String userId, String username, String role) {
+        Delivery delivery = deliveryRepository.findByIdAndIsDeleteFalse(deliveryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송를 찾을 수 없습니다."));
+
+        // 수령 업체 담당자 업데이트
+        Long receiverId = request.getReceiverId() != null ? request.getReceiverId() : delivery.getReceiverId();
+        String receiverSlackId = delivery.getReceiverSlackId();
+        if (request.getReceiverId() != null) {
+            UserDto user = userClient.getUserById(receiverId);
+            receiverId = user.getUserId();
+            receiverSlackId = user.getSlackId();
+        }
+
+        // 배송 상태
+        DeliveryStatus deliveryStatus = request.getDeliveryStatus() != null ? DeliveryStatus.fromString(request.getDeliveryStatus()) : delivery.getDeliveryStatus();
+        if (request.getDeliveryStatus() != null) {
+            if (!delivery.getDeliveryStatus().nextStatus(deliveryStatus)) {
+                throw new IllegalArgumentException("잘못된 상태 전환입니다.");
+            }
+        }
+
+        // 배송 경로 상태 업데이트
+        if (deliveryStatus == DeliveryStatus.IN_HUB_TRANSFER || deliveryStatus == DeliveryStatus.ARRIVED_AT_DESTINATION_HUB) {
+            deliveryRouteService.updateRouteStatus(deliveryId, deliveryStatus);
+        }
+
+        // 배송 정보 업데이트
+        delivery.update(receiverId, receiverSlackId, deliveryStatus);
+        delivery.setUpdatedBy(username);
+        return DeliveryDto.create(delivery);
     }
 }
