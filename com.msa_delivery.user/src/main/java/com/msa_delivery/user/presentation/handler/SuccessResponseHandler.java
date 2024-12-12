@@ -1,4 +1,4 @@
-package com.msa_delivery.user.presentation.controller.handler;
+package com.msa_delivery.user.presentation.handler;
 
 import com.msa_delivery.user.application.dtos.ApiPageResponseDto;
 import com.msa_delivery.user.application.dtos.ApiResponseDto;
