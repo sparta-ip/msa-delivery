@@ -49,4 +49,10 @@ public class Delivery extends BaseEntity{
                 .address(address)
                 .build();
     }
+
+    public void update(Long receiverId, String receiverSlackId, DeliveryStatus deliveryStatus) {
+        this.receiverId = receiverId;
+        this.receiverSlackId = receiverSlackId;
+        this.deliveryStatus = deliveryStatus;
+    }
 }

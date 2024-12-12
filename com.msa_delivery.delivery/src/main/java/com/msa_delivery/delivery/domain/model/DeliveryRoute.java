@@ -52,4 +52,8 @@ public class DeliveryRoute extends BaseEntity{
                 .deliveryStatus(deliveryStatus)
                 .build();
     }
+
+    public void updateStatus(DeliveryStatus deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
+    }
 }
