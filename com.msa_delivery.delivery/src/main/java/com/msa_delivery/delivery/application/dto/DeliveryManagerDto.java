@@ -14,7 +14,7 @@ import java.util.UUID;
 public class DeliveryManagerDto extends BaseDto{
     private Long deliveryMangerId;
     private UUID orderId;
-    private UUID slackId;
+    private String slackId;
     private UUID hubId;
     private String type;
     private Integer sequence;

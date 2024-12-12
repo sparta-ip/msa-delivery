@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "user-service")
-public interface UserClient {
+import java.util.UUID;
 
-    @GetMapping("/api/users/{userId}")
-    ResponseEntity<CommonResponse<UserDto>> getUserById(@PathVariable Long userId);
+@FeignClient(name = "hub-service")
+public interface HubClient {
+
+    @GetMapping("/api/hubs/{hubId}")
+    ResponseEntity<CommonResponse<HubDto>> getHubById(@PathVariable UUID hubId);
 }
