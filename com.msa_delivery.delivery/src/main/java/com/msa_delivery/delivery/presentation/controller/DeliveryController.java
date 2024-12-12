@@ -8,6 +8,8 @@ import com.msa_delivery.delivery.presentation.request.DeliveryRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -104,4 +106,37 @@ public class DeliveryController {
             );
         }
     }
+
+    @GetMapping
+    public ResponseEntity<?> getDeliveries(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "delivery_status", required = false) String deliveryStatus,
+            @RequestParam(value = "departure_id", required = false) UUID departureId,
+            @RequestParam(value = "arrival_id", required = false) UUID arrivalId,
+            @RequestParam(value = "delivery_manager_id", required = false) Long deliveryManagerId,
+            @RequestParam(value = "receiver_id", required = false) Long receiverId,
+            @RequestParam(value = "created_from", required = false) String createdFrom,
+            @RequestParam(value = "created_to", required = false) String createdTo,
+            @RequestHeader("X-User_Id") Long userId,
+            @RequestHeader("X-Role") String role,
+            Pageable pageable) {
+        try {
+            Page<DeliveryDto> deliveries =
+                    deliveryService.getDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
+                            receiverId, createdFrom, createdTo, userId, role, pageable);
+
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveries)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "검색 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
 }
