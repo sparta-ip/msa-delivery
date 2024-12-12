@@ -1,24 +1,24 @@
-//package com.msa_delivery.hub.infrastrcture.configuration;
-//
-//
-//import com.msa_delivery.hub.domain.model.Hubs;
-//import com.msa_delivery.hub.domain.model.LocationVO;
-//import com.msa_delivery.hub.domain.repository.HubWriteRepository;
-//import com.msa_delivery.hub.infrastrcture.kakao.KaKaoMapClient;
-//import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
-//import jakarta.annotation.PostConstruct;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.stereotype.Component;
-//
-//import java.time.LocalDateTime;
-//import java.util.Arrays;
-//import java.util.List;
-//
-//@Component
-//@RequiredArgsConstructor
-//public class HubDataInitializer {
-//
-//
+package com.msa_delivery.hub.infrastrcture.configuration;
+
+
+import com.msa_delivery.hub.domain.model.Hubs;
+import com.msa_delivery.hub.domain.model.Location;
+import com.msa_delivery.hub.domain.repository.HubWriteRepository;
+import com.msa_delivery.hub.infrastrcture.kakao.KaKaoMapClient;
+import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class HubDataInitializer {
+
+
 //    private final HubWriteRepository hubWriteRepository;
 //    private final KaKaoMapClient kaKaoMapClient;
 //
@@ -47,7 +47,7 @@
 //    }
 //
 //    private Hubs createHubWithLocation(String name, String address) {
-//        LocationVO location = null;
+//        Location location = null;
 //
 //        KaKaoGeoResponse geoResponse = kaKaoMapClient.convertAddressToGeocode(address);
 //            location = geoResponse.getDocuments().get(0).toLocation();
@@ -63,5 +63,5 @@
 //                    .build();
 //
 //    }
-//
-//}
+
+}
