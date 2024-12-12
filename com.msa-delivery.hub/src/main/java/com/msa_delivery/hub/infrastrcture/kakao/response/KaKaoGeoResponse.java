@@ -1,6 +1,6 @@
-package com.msa_delivery.hub.infrastrcture.kakao.dto;
+package com.msa_delivery.hub.infrastrcture.kakao.response;
 
-import com.msa_delivery.hub.domain.model.LocationVO;
+import com.msa_delivery.hub.domain.model.Location;
 import lombok.Getter;
 
 import java.util.List;
@@ -15,8 +15,8 @@ public class KaKaoGeoResponse {
         private double y;
         private double x;
 
-        public LocationVO toLocation() {
-            return new LocationVO(this.y, this.x);
+        public Location toLocation() {
+            return new Location(this.x, this.y);
         }
     }
 }
