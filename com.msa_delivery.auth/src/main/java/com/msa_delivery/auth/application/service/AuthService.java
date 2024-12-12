@@ -52,7 +52,7 @@ public class AuthService {
     }
 
     @CircuitBreaker(name = "signUpCircuitBreaker", fallbackMethod = "fallbackSignUp")
-    @Retry(name = "defaultRetry", fallbackMethod = "fallbackSignUp")
+    @Retry(name = "defaultRetry")
     public ApiResponseDto<AuthResponseDto> signUp(AuthRequestDto userRequestDto) {
         if (userRepository.existsByUsername(userRequestDto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
@@ -69,7 +69,7 @@ public class AuthService {
     }
 
     @CircuitBreaker(name = "signInCircuitBreaker", fallbackMethod = "fallbackSignIn")
-    @Retry(name = "defaultRetry", fallbackMethod = "fallbackSignIn")
+    @Retry(name = "defaultRetry")
     public ResponseEntity<ApiResponseDto<?>> signIn(AuthRequestDto authRequestDto) {
         User user = userRepository.findByUsername(authRequestDto.getUsername()).orElseThrow(()
                 -> new IllegalArgumentException("Please check username or password"));
