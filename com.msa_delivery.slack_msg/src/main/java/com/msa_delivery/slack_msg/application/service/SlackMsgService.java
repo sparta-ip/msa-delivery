@@ -134,6 +134,26 @@ public class SlackMsgService {
         }
     }
 
+    // 슬랙 메시지 조회
+    public ResponseDto<SlackMsgDataDto> getSlackMsg(UUID slack_msg_id) {
+        try {
+            // 메시지 조회
+            SlackMsg slackMsg = slackMsgRepository.findById(slack_msg_id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Slack 메시지입니다."));
+
+            // 응답 데이터 생성
+            SlackMsgDataDto slackMsgDataDto = new SlackMsgDataDto(slackMsg);
+            return new ResponseDto<>(HttpStatus.OK.value(), "슬랙 메시지가 조회되었습니다.", slackMsgDataDto);
+        } catch (Exception e) {
+            log.error("예상치 못한 오류 발생: {}", e.getMessage(), e);
+            return new ResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "알 수 없는 오류가 발생했습니다.", null);
+        }
+    }
+
+    // 슬랙 메시지 전체 조회 및 검색
+
+
+    // 슬랙 메시지 전송
     private void sendSlackMessage(SlackRequestDto slackRequestDto) {
         try {
             String bearerToken = "Bearer " + slackBotToken; // Bearer 형식으로 토큰 전달
@@ -143,6 +163,5 @@ public class SlackMsgService {
             throw feignException;
         }
     }
-
 
 }
