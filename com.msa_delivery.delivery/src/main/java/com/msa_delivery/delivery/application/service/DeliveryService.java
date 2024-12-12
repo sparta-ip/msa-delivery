@@ -63,8 +63,8 @@ public class DeliveryService {
 
         // 배송 생성
         Delivery delivery = Delivery.create(orderId, companyDeliveryManager, receiverId, receiverSlackId, departureId, arrivalId, deliveryStatus, address);
-        deliveryRepository.save(delivery);
         delivery.setCreatedBy(username);
+        deliveryRepository.save(delivery);
         return delivery;
     }
 
@@ -92,8 +92,8 @@ public class DeliveryService {
 
         // 배송 경로 생성
         DeliveryRoute deliveryRoute = DeliveryRoute.create(delivery, hubDeliveryManager, 1, departureId, arrivalId, expectDistance, expectDuration, null, null, deliveryStatus);
-        deliveryRouteRepository.save(deliveryRoute);
         deliveryRoute.setCreatedBy(username);
+        deliveryRouteRepository.save(deliveryRoute);
         return deliveryRoute;
     }
 
@@ -106,7 +106,7 @@ public class DeliveryService {
         Long receiverId = request.getReceiverId() != null ? request.getReceiverId() : delivery.getReceiverId();
         String receiverSlackId = delivery.getReceiverSlackId();
         if (request.getReceiverId() != null) {
-            UserDto user = userClient.getUserById(receiverId);
+            UserDto user = userClient.getUserById(receiverId).getBody().getData();
             receiverId = user.getUserId();
             receiverSlackId = user.getSlackId();
         }

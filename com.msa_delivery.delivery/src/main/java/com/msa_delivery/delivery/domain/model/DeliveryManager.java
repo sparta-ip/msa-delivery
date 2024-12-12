@@ -19,7 +19,7 @@ public class DeliveryManager extends BaseEntity{
     private Long id;
 
     private UUID orderId;
-    private UUID slackId;
+    private String slackId;
     private UUID hubId;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +34,18 @@ public class DeliveryManager extends BaseEntity{
     @Builder.Default
     @OneToMany(mappedBy = "deliveryManager", fetch = FetchType.LAZY)
     private List<Delivery> deliveries = new ArrayList<>();
+
+    public static DeliveryManager create(Long id, UUID orderId, String slackId, UUID hubId, DeliveryManagerType type, Integer sequence) {
+        return DeliveryManager.builder()
+                .id(id)
+                .orderId(orderId)
+                .slackId(slackId)
+                .hubId(hubId)
+                .type(type)
+                .sequence(sequence)
+                .build();
+    }
+
 
     public void updateOrderId(UUID orderId) {
         this.orderId = orderId;
