@@ -72,7 +72,7 @@ public class DeliveryRouteService {
         }
         // 새로운 배송 담당자 조회
         // 배송 담당자는 한 번에 하나의 배송(주문) 만 처리
-        DeliveryManager newManager = deliveryManagerRepository.findById(request.getDeliveryManagerId())
+        DeliveryManager newManager = deliveryManagerRepository.findByIdAndIsDeleteFalse(request.getDeliveryManagerId())
                 .orElseThrow(() -> new IllegalArgumentException("지정된 새로운 배송 담당자를 찾을 수 없습니다."));
         if (newManager.getOrderId() != null) {
             throw new IllegalArgumentException("이미 배송이 지정되어 있는 담당자입니다.");
@@ -84,6 +84,14 @@ public class DeliveryRouteService {
         route.update(newManager, distance, duration);
         route.setUpdatedBy(username);
         return DeliveryRouteDto.create(route);
+    }
+
+    @Transactional
+    public void deleteRoute(UUID deliveryRouteId, String userId, String username, String role) {
+        DeliveryRoute route = deliveryRouteRepository.findByIdAndIsDeleteFalse(deliveryRouteId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송 경로를 찾을 수 없습니다."));
+
+        route.delete(username);
     }
 
     // 배송 경로의 배송 상태 업데이트
