@@ -1,5 +1,6 @@
 package com.msa_delivery.hub.domain.model;
 
+import com.msa_delivery.hub.application.dto.request.CreateHubReqDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,7 @@ public class Hubs {
     private String address;
 
     @Embedded
-    private LocationVO location;
+    private Location location;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -50,4 +51,10 @@ public class Hubs {
     @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
+    public void updateHubData(CreateHubReqDto reqDto, String address, Location location) {
+        this.name = reqDto.getHub().getName();
+        this.address = address;
+        this.location = location;
+    }
 }
