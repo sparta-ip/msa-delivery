@@ -1,5 +1,6 @@
 package com.msa_delivery.company.presentation.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import java.util.UUID;
 public class ProductRequest {
 
     @NotNull(message = "업체 ID는 필수 입력 값입니다.")
+    @JsonProperty("company_id")
     private UUID companyId;
 
     @NotBlank(message = "상품 이름은 필수 입력 값입니다.")

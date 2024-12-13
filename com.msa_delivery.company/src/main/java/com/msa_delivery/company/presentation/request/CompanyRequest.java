@@ -1,5 +1,6 @@
 package com.msa_delivery.company.presentation.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 public class CompanyRequest {
 
     @NotNull(message = "담당자 ID는 필수 입력 값입니다.")
+    @JsonProperty("manager_id")
     private Long managerId;
 
     @NotBlank(message = "업체 이름은 필수 입력 값입니다.")
