@@ -24,7 +24,7 @@ public class CompanyController {
 
     @PostMapping
     public ResponseEntity<?> createCompany(@Valid @RequestBody CompanyRequest request,
-                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
         try {
@@ -46,7 +46,7 @@ public class CompanyController {
     @PutMapping("/{companyId}")
     public ResponseEntity<?> updateCompany(@PathVariable UUID companyId,
                                            @RequestBody CompanyUpdateRequest request,
-                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
         try {
@@ -67,7 +67,7 @@ public class CompanyController {
 
     @DeleteMapping("/{companyId}")
     public ResponseEntity<?> deleteCompany(@PathVariable UUID companyId,
-                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
         try {
@@ -87,9 +87,12 @@ public class CompanyController {
     }
 
     @GetMapping("/{companyId}")
-    public ResponseEntity<?> getCompanyById(@PathVariable UUID companyId) {
+    public ResponseEntity<?> getCompanyById(@PathVariable UUID companyId,
+                                            @RequestHeader("X-User_Id") String userId,
+                                            @RequestHeader("X-Username") String username,
+                                            @RequestHeader("X-Role") String role) {
         try {
-            CompanyDto company = companyService.getCompanyById(companyId);
+            CompanyDto company = companyService.getCompanyById(companyId, userId, username, role);
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "업체 상세 조회가 완료되었습니다.", company)
             );
@@ -111,11 +114,13 @@ public class CompanyController {
             @RequestParam(value = "page_size", defaultValue = "10") int pageSize,
             @RequestParam(value = "page_number", defaultValue = "0") int pageNumber,
             @RequestParam(value = "sort_by", defaultValue = "createdAt") String sortBy,
-            @RequestParam(value = "direction", defaultValue = "asc") String direction
-    ) {
+            @RequestParam(value = "direction", defaultValue = "asc") String direction,
+            @RequestHeader("X-User_Id") String userId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-Role") String role) {
         try {
             PageRequest pageable = PageRequest.of(pageNumber, pageSize);
-            Page<CompanyDto> companies = companyService.getCompanies(type, search, sortBy, direction, pageable);
+            Page<CompanyDto> companies = companyService.getCompanies(type, search, sortBy, direction, userId, username, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", companies)

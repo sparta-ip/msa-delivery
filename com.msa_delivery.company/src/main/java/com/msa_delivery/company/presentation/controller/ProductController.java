@@ -24,9 +24,9 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<?> creatProduct(@Valid @RequestBody ProductRequest request,
-                                           @RequestHeader("X-User_Id") Long userId,
-                                           @RequestHeader("X-Username") String username,
-                                           @RequestHeader("X-Role") String role) {
+                                          @RequestHeader("X-User_Id") String userId,
+                                          @RequestHeader("X-Username") String username,
+                                          @RequestHeader("X-Role") String role) {
         try {
             ProductDto product = productService.createProduct(request, userId, username, role);
             return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -46,7 +46,7 @@ public class ProductController {
     @PutMapping("/{productId}")
     public ResponseEntity<?> updateProduct(@PathVariable UUID productId,
                                            @RequestBody ProductUpdateRequest request,
-                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
         try {
@@ -67,7 +67,7 @@ public class ProductController {
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<?> deleteProduct(@PathVariable UUID productId,
-                                           @RequestHeader("X-User_Id") Long userId,
+                                           @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
         try {
@@ -88,10 +88,11 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductById(@PathVariable UUID productId,
-                                            @RequestHeader("X-User_Id") Long userId,
+                                            @RequestHeader("X-User_Id") String userId,
+                                            @RequestHeader("X-Username") String username,
                                             @RequestHeader("X-Role") String role) {
         try {
-            ProductDto product = productService.getProductById(productId, userId, role);
+            ProductDto product = productService.getProductById(productId, userId, username, role);
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "상품 상세 조회가 완료되었습니다.", product)
             );
@@ -114,12 +115,13 @@ public class ProductController {
             @RequestParam(required = false) Integer maxPrice,
             @RequestParam(required = false) Integer minQuantity,
             @RequestParam(required = false) Integer maxQuantity,
-            @RequestHeader("X-User_Id") Long userId,
+            @RequestHeader("X-User_Id") String userId,
+            @RequestHeader("X-Username") String username,
             @RequestHeader("X-Role") String role,
             Pageable pageable) {
         try {
             Page<ProductDto> products =
-                    productService.getProducts(search, hubId, minPrice, maxPrice, minQuantity, maxQuantity, userId, role, pageable);
+                    productService.getProducts(search, hubId, minPrice, maxPrice, minQuantity, maxQuantity, userId, username, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", products)

@@ -5,10 +5,16 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "user-service")
 public interface UserClient {
 
-    @GetMapping("/api/users/{id}")
-    ResponseEntity<CommonResponse<UserDto>> getUserById(@PathVariable Long id);
+    @GetMapping("/api/users/{userId}")
+    ResponseEntity<CommonResponse<UserDto>> getUserById(
+            @PathVariable("userId") Long userId,
+            @RequestHeader("X-User_Id") String headerUserId,
+            @RequestHeader("X-Username") String username,
+            @RequestHeader("X-Role") String role
+    );
 }

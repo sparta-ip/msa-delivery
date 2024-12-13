@@ -29,23 +29,23 @@ public class CompanyService {
     private final HubClient hubClient;
 
     @Transactional
-    public CompanyDto createCompany(CompanyRequest request, Long userId, String username, String role) throws AccessDeniedException {
+    public CompanyDto createCompany(CompanyRequest request, String userId, String username, String role) throws AccessDeniedException {
 
         String address = request.getAddress();  // 업체 주소
 
         // HubClient 연동 & HubMapper 이용
         // HubMapper 를 통해 address 기반으로 hubName 추출
         String hubName = HubMapper.getHubByAddress(HubMapper.getHubByAddress(address));
-        HubDto hub = hubClient.getHubs(hubName).getBody().getData();
+        HubDto hub = hubClient.getHubs(hubName, userId, username, role).getBody().getData().getContent().get(0);
         UUID hubId= hub.getHubId(); // 업체 관리 허브 ID
         Long hubManagerId = hub.getHubManagerId();  // 허브 담당자 ID;
 
         // 권한 체크
-        checkCreateRole(role, userId, hubManagerId);
+        checkCreateRole(role, userId, username,hubManagerId);
 
         // UserClient 연동
         // managerId 체크 후 userId, slackId 반환
-        UserDto user = userClient.getUserById(request.getManagerId()).getBody().getData();
+        UserDto user = userClient.getUserById(request.getManagerId(), userId, username, role).getBody().getData();
         Long managerId = user.getUserId();  // 업체 담당자 ID
         String slackId = user.getSlackId(); // 업체 담당자 Slack ID
 
@@ -64,7 +64,7 @@ public class CompanyService {
     }
 
     @Transactional
-    public CompanyDto updateCompany(UUID companyId, CompanyUpdateRequest request, Long userId, String username, String role) throws AccessDeniedException {
+    public CompanyDto updateCompany(UUID companyId, CompanyUpdateRequest request, String userId, String username, String role) throws AccessDeniedException {
         // 기존 데이터 조회
         Company company = companyRepository.findById(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
@@ -72,14 +72,14 @@ public class CompanyService {
         UUID companyHubId = company.getHubId();         // 기존 업체 허브 ID
 
         // 권한 체크
-        checkUpdateRole(role, userId, companyHubId, companyManagerId);
+        checkUpdateRole(role, userId, username, companyHubId, companyManagerId);
 
         // 주소, 허브 ID 업데이트
         String address = request.getAddress() != null ? request.getAddress() : company.getAddress();
         UUID hubId = companyHubId;
         if (request.getAddress() != null) {
             String hubName = HubMapper.getHubByAddress(address);
-            HubDto hub = hubClient.getHubs(hubName).getBody().getData();
+            HubDto hub = hubClient.getHubs(hubName, userId, username, role).getBody().getData().getContent().get(0);
             hubId = hub.getHubId();
         }
 
@@ -87,7 +87,7 @@ public class CompanyService {
         Long managerId = companyManagerId;
         String slackId = company.getSlackId();
         if (request.getManagerId() != null) {
-            UserDto user = userClient.getUserById(request.getManagerId()).getBody().getData();
+            UserDto user = userClient.getUserById(request.getManagerId(), userId, username, role).getBody().getData();
             managerId = user.getUserId();
             slackId = user.getSlackId();
         }
@@ -103,33 +103,32 @@ public class CompanyService {
     }
 
     @Transactional
-    public void deleteCompany(UUID companyId, Long userId, String username, String role) throws AccessDeniedException {
+    public void deleteCompany(UUID companyId, String userId, String username, String role) throws AccessDeniedException {
         // 기존 데이터 조회
         Company company = companyRepository.findByIdAndIsDeleteFalse(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
-        Long companyManagerId = company.getManagerId(); // 기존 업체 담당자 ID
         UUID companyHubId = company.getHubId();         // 기존 업체 허브 ID
 
         // 권한 체크
-        checkDeleteRole(role, userId, companyHubId);
+        checkDeleteRole(role, userId, username, companyHubId);
 
         company.delete(username);
     }
 
     @Transactional(readOnly = true)
-    public CompanyDto getCompanyById(UUID companyId) {
+    public CompanyDto getCompanyById(UUID companyId, String userId, String username, String role) {
         Company company = companyRepository.findByIdAndIsDeleteFalse(companyId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
         return CompanyDto.create(company);
     }
 
     @Transactional(readOnly = true)
-    public Page<CompanyDto> getCompanies(String type, String search, String sortBy, String direction, Pageable pageable) {
+    public Page<CompanyDto> getCompanies(String type, String search, String sortBy, String direction, String userId, String username, String role, Pageable pageable) {
         Page<CompanyDto> companies = companyRepository.searchCompanies(type, search, sortBy, direction, pageable);
         return companies;
     }
 
-    private void checkDeleteRole(String role, Long userId, UUID companyHubId) throws AccessDeniedException {
+    private void checkDeleteRole(String role, String userId, String username, UUID companyHubId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
@@ -137,11 +136,11 @@ public class CompanyService {
 
             case "HUB_MANAGER":
                 // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId).getBody().getData();
+                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
                 Long hubManagerId = hub.getHubManagerId();
 
                 // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!userId.equals(hubManagerId)) {
+                if (!Long.valueOf(userId).equals(hubManagerId)) {
                     throw new AccessDeniedException("해당 허브의 업체를 삭제할 권한이 없습니다.");
                 }
                 break;
@@ -156,7 +155,7 @@ public class CompanyService {
         }
     }
 
-    private void checkCreateRole(String role, Long userId, Long hubManagerId) throws AccessDeniedException {
+    private void checkCreateRole(String role, String userId, String username, Long hubManagerId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
@@ -164,7 +163,7 @@ public class CompanyService {
 
             case "HUB_MANAGER":
                 // 요청 헤더의 허브 ID와 매핑된 허브 ID 비교
-                if (!userId.equals(hubManagerId)) {
+                if (!Long.valueOf(userId).equals(hubManagerId)) {
                     throw new AccessDeniedException("해당 허브에서 업체를 생성할 권한이 없습니다.");
                 }
                 break;
@@ -179,7 +178,7 @@ public class CompanyService {
         }
     }
 
-    private void checkUpdateRole(String role, Long userId, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {
+    private void checkUpdateRole(String role, String userId, String username, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
@@ -187,18 +186,18 @@ public class CompanyService {
 
             case "HUB_MANAGER":
                 // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId).getBody().getData();
+                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
                 Long hubManagerId = hub.getHubManagerId();
 
                 // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!userId.equals(hubManagerId)) {
+                if (!Long.valueOf(userId).equals(hubManagerId)) {
                     throw new AccessDeniedException("해당 허브의 업체를 수정할 권한이 없습니다.");
                 }
                 break;
 
             case "COMPANY_MANAGER":
                 // 요청 헤더의 userId와 매핑된 companyManagerId 비교
-                if (!userId.equals(companyManagerId)) {
+                if (!Long.valueOf(userId).equals(companyManagerId)) {
                     throw new AccessDeniedException("본인의 업체만 수정할 수 있습니다");
                 }
             case "DELIVERY_MANAGER":

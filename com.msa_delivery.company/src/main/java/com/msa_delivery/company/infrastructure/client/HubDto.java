@@ -12,5 +12,4 @@ import java.util.UUID;
 public class HubDto {
     private UUID hubId;
     private Long hubManagerId;
-    // HubDto 필드 추가
 }

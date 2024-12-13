@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class UserDto {
     private Long userId;
     private String slackId;
-    // UserDto 필드 추가
 }
