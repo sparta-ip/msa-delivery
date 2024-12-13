@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -111,16 +112,14 @@ public class CompanyController {
     public ResponseEntity<?> getCompanies(
             @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "page_size", defaultValue = "10") int pageSize,
-            @RequestParam(value = "page_number", defaultValue = "0") int pageNumber,
-            @RequestParam(value = "sort_by", defaultValue = "createdAt") String sortBy,
-            @RequestParam(value = "direction", defaultValue = "asc") String direction,
+            @RequestParam(value = "company_manager_id", required = false) Long managerId,
+            @RequestParam(value = "hub_id", required = false) UUID hubId,
             @RequestHeader("X-User_Id") String userId,
             @RequestHeader("X-Username") String username,
-            @RequestHeader("X-Role") String role) {
+            @RequestHeader("X-Role") String role,
+            Pageable pageable) {
         try {
-            PageRequest pageable = PageRequest.of(pageNumber, pageSize);
-            Page<CompanyDto> companies = companyService.getCompanies(type, search, sortBy, direction, userId, username, role, pageable);
+            Page<CompanyDto> companies = companyService.getCompanies(type, search, managerId, hubId, userId, username, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", companies)

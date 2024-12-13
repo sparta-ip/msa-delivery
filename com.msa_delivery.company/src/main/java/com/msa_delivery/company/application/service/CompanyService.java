@@ -123,9 +123,8 @@ public class CompanyService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CompanyDto> getCompanies(String type, String search, String sortBy, String direction, String userId, String username, String role, Pageable pageable) {
-        Page<CompanyDto> companies = companyRepository.searchCompanies(type, search, sortBy, direction, pageable);
-        return companies;
+    public Page<CompanyDto> getCompanies(String type, String search, Long managerId, UUID hubId, String userId, String username, String role, Pageable pageable) {
+        return companyRepository.searchCompanies(type, search, managerId, hubId, pageable);
     }
 
     private void checkDeleteRole(String role, String userId, String username, UUID companyHubId) throws AccessDeniedException {
