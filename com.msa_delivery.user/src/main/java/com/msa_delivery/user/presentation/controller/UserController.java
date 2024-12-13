@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> getUser(@PathVariable String userId,
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> getUser(@PathVariable Long userId,
                                                                              @RequestHeader(value = "X-User_Id", required = true) @NotBlank String headerUserId,
                                                                              @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
                                                                              @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {

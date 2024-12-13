@@ -48,16 +48,15 @@ public class UserService {
 
     @CircuitBreaker(name = "getUserCircuitBreaker", fallbackMethod = "fallbackGetUsers")
     @Transactional(readOnly = true)
-    public ApiResponseDto<UserResponseDto> getUser(String userId, String headerUserId, String role) {
-        if (!role.equals(UserRoleEnum.MASTER.toString()) && !userId.equals(headerUserId)) {
+    public ApiResponseDto<UserResponseDto> getUser(Long userId, String headerUserId, String role) {
+        Long longHeaderUserId = Long.valueOf(headerUserId);
+
+        if (!role.equals(UserRoleEnum.MASTER.toString()) && userId.equals(longHeaderUserId)) {
             throw new IllegalArgumentException("Cannot look up other people's information.");
         }
 
-        Long longPathVariableUserId = Long.valueOf(userId);
-        Long longHeaderUserId = Long.valueOf(headerUserId);
-
         User user = role.equals(UserRoleEnum.MASTER.toString()) ?
-                userRepository.findById(longPathVariableUserId).orElseThrow(()
+                userRepository.findById(userId).orElseThrow(()
                         -> new IllegalArgumentException("user not exist"))
                 : userRepository.findById(longHeaderUserId).orElseThrow(()
                 -> new IllegalArgumentException("user not exist"));
