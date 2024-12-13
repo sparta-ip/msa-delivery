@@ -21,6 +21,7 @@ public class UserController {
 
     private final UserService userService;
 
+    // TODO : @RequestHeader도 dto로 매핑 시켜서 받을 수 있다. 추후 refactoring.
     @GetMapping
     public ResponseEntity<ApiResponseDto<Page<UserDetailResponseDto>>> searchUsers(@ModelAttribute UserSearchDto userSearchDto,
                                                                                    @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
