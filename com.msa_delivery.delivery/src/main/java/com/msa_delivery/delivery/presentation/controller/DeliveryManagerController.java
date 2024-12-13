@@ -2,6 +2,7 @@ package com.msa_delivery.delivery.presentation.controller;
 
 import com.msa_delivery.delivery.application.dto.CommonResponse;
 import com.msa_delivery.delivery.application.dto.DeliveryManagerDto;
+import com.msa_delivery.delivery.application.dto.DeliveryRouteDto;
 import com.msa_delivery.delivery.application.service.DeliveryManagerService;
 import com.msa_delivery.delivery.presentation.request.DeliveryManagerRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryManagerUpdateRequest;
@@ -80,6 +81,26 @@ public class DeliveryManagerController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                     CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 담당자 삭제 중 오류가 발생했습니다.")
+            );
+        }
+    }
+
+    @GetMapping("/{deliveryManagerId}")
+    public ResponseEntity<?> getManagerById(@PathVariable Long deliveryManagerId,
+                                          @RequestHeader("X-User_Id") Long userId,
+                                          @RequestHeader("X-Role") String role) {
+        try {
+            DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, role);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    CommonResponse.success(HttpStatus.OK, "배송 담당자 상세 조회가 완료되었습니다.", manager)
+            );
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    CommonResponse.error(HttpStatus.NOT_FOUND, e.getMessage())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 담당자 조회 중 오류가 발생했습니다.")
             );
         }
     }
