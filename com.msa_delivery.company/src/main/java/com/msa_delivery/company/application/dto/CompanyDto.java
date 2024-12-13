@@ -28,7 +28,7 @@ public class CompanyDto extends BaseDto {
                 .hubId(company.getHubId())
                 .name(company.getName())
                 .address(company.getAddress())
-                .type(String.valueOf(company.getType()))
+                .type(company.getType().name())
                 .build();
         dto.initializeBaseFields(company);
         return dto;

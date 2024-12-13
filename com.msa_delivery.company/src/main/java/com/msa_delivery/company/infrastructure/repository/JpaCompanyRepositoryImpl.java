@@ -58,7 +58,7 @@ public class JpaCompanyRepositoryImpl implements JpaCompanyRepository {
         BooleanExpression condition = company.isDelete.isFalse(); // 삭제되지 않은 엔티티만 검색
 
         if (type != null) {
-            condition = condition.and(company.type.eq(CompanyType.valueOf(type)));
+            condition = condition.and(company.type.eq(CompanyType.fromString(type)));
         }
 
         if (search != null) {
