@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class CompanyUpdateRequest {
-    @JsonProperty("manager_id")
+    @JsonProperty("company_manager_id")
     private Long managerId;
     private String name;
     private String address;
