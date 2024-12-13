@@ -39,3 +39,4 @@ out/
 application.yml
 
 .idea/
+com.msa_delivery.order/
