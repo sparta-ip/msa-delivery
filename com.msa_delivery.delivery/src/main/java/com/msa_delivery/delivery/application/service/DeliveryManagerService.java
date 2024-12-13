@@ -11,6 +11,8 @@ import com.msa_delivery.delivery.infrastructure.client.UserDto;
 import com.msa_delivery.delivery.presentation.request.DeliveryManagerRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryManagerUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -130,6 +132,12 @@ public class DeliveryManagerService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
 
         return DeliveryManagerDto.create(manager);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DeliveryManagerDto> getManagers(String search, String type, UUID hubId, Integer sequenceMin, Integer sequenceMax,
+                                                String createdFrom, String createdTo, Long userId, String role, Pageable pageable) {
+        return deliveryManagerRepository.searchManagers(search, type, hubId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
     }
 
     @Transactional
