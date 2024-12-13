@@ -53,7 +53,7 @@ public class AuthService {
 
     @CircuitBreaker(name = "signUpCircuitBreaker", fallbackMethod = "fallbackSignUp")
     @Retry(name = "defaultRetry")
-    public ApiResponseDto<AuthResponseDto> signUp(AuthRequestDto userRequestDto) {
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signUp(AuthRequestDto userRequestDto) {
         if (userRepository.existsByUsername(userRequestDto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -63,14 +63,15 @@ public class AuthService {
         User user = User.dtoAndPasswordOf(userRequestDto, encodedPassword);
         userRepository.save(user);
 
-        return ApiResponseDto.response(HttpStatus.CREATED.value(),
-                "회원가입이 완료되었습니다.",
-                AuthResponseDto.fromEntity(user));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseDto.response(HttpStatus.CREATED.value(),
+                        "회원가입이 완료되었습니다.",
+                        AuthResponseDto.fromEntity(user)));
     }
 
     @CircuitBreaker(name = "signInCircuitBreaker", fallbackMethod = "fallbackSignIn")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<?>> signIn(AuthRequestDto authRequestDto) {
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(AuthRequestDto authRequestDto) {
         User user = userRepository.findByUsername(authRequestDto.getUsername()).orElseThrow(()
                 -> new IllegalArgumentException("Please check username or password"));
 
@@ -82,7 +83,7 @@ public class AuthService {
                 .header("Authorization", createAccessToken(user))
                 .body(ApiResponseDto.response(200,
                         "로그인에 성공하였습니다.",
-                        ""));
+                        null));
     }
 
     public Boolean verifyUser(VerifyUserDto verifyUserDto) {
@@ -120,15 +121,16 @@ public class AuthService {
                 .compact();
     }
 
-    public ApiResponseDto<AuthResponseDto> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
 
-        return ApiResponseDto.response(status.value(), throwable.getMessage(), null);
+        return ResponseEntity.status(status)
+                .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<?>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -136,7 +138,7 @@ public class AuthService {
         return ResponseEntity.status(status)
                 .body(ApiResponseDto.response(status.value(),
                         throwable.getMessage(),
-                        ""));
+                        null));
     }
 
     @PostConstruct

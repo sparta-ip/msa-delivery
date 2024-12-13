@@ -23,15 +23,14 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponseDto<?>> signIn(@RequestBody AuthRequestDto authRequestDto
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(@RequestBody AuthRequestDto authRequestDto
     ) {
         return authService.signIn(authRequestDto);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(authService.signUp(authRequestDto));
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
+        return authService.signUp(authRequestDto);
     }
 
     @PostMapping("/verify")
