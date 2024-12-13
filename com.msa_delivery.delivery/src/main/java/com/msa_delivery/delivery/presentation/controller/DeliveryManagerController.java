@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/delivery-managers")
+@RequestMapping("/api/deliveries/delivery-managers")
 @RequiredArgsConstructor
 public class DeliveryManagerController {
 
@@ -88,8 +88,9 @@ public class DeliveryManagerController {
 
     @GetMapping("/{deliveryManagerId}")
     public ResponseEntity<?> getManagerById(@PathVariable Long deliveryManagerId,
-                                          @RequestHeader("X-User_Id") Long userId,
-                                          @RequestHeader("X-Role") String role) {
+                                            @RequestHeader("X-User_Id") String userId,
+                                            @RequestHeader("X-Username") String username,
+                                            @RequestHeader("X-Role") String role) {
         try {
             DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, role);
             return ResponseEntity.status(HttpStatus.OK).body(
@@ -115,7 +116,8 @@ public class DeliveryManagerController {
             @RequestParam(value = "sequence_max", required = false) Integer sequenceMax, // 최대 순번
             @RequestParam(value = "created_from", required = false) String createdFrom, // 생성 시작일
             @RequestParam(value = "created_to", required = false) String createdTo, // 생성 종료일
-            @RequestHeader("X-User_Id") Long userId,
+            @RequestHeader("X-User_Id") String userId,
+            @RequestHeader("X-Username") String username,
             @RequestHeader("X-Role") String role,
             Pageable pageable) {
         try {

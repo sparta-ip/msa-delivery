@@ -6,7 +6,7 @@ import com.msa_delivery.delivery.domain.model.*;
 import com.msa_delivery.delivery.domain.repository.DeliveryManagerRepository;
 import com.msa_delivery.delivery.domain.repository.DeliveryRepository;
 import com.msa_delivery.delivery.domain.repository.DeliveryRouteRepository;
-import com.msa_delivery.delivery.infrastructure.client.HubRouteClient;
+import com.msa_delivery.delivery.infrastructure.client.HubClient;
 import com.msa_delivery.delivery.infrastructure.client.HubRouteDto;
 import com.msa_delivery.delivery.infrastructure.client.UserClient;
 import com.msa_delivery.delivery.infrastructure.client.UserDto;
@@ -29,7 +29,7 @@ public class DeliveryService {
     private final DeliveryManagerRepository deliveryManagerRepository;
     private final DeliveryRouteService deliveryRouteService;
     private final DeliveryManagerService deliveryManagerService;
-    private final HubRouteClient hubRouteClient;
+    private final HubClient hubClient;
     private final UserClient userClient;
 
     @Transactional
@@ -39,7 +39,7 @@ public class DeliveryService {
         Delivery delivery = createDeliveryEntity(request, username);
 
         // 배송 경로 생성
-        DeliveryRoute deliveryRoute = createDeliveryRouteEntity(request, delivery, username);
+        DeliveryRoute deliveryRoute = createDeliveryRouteEntity(request, delivery, userId, username, role);
 
         return DeliveryCreateDto.create(delivery, deliveryRoute);
     }
@@ -69,7 +69,7 @@ public class DeliveryService {
     }
 
     // 배송 경로 생성 로직 분리
-    private DeliveryRoute createDeliveryRouteEntity(DeliveryRequest request, Delivery delivery, String username) {
+    private DeliveryRoute createDeliveryRouteEntity(DeliveryRequest request, Delivery delivery, String userId, String username, String role) {
         UUID departureId = request.getDepartureId();
         UUID arrivalId = request.getArrivalId();
         DeliveryStatus deliveryStatus = DeliveryStatus.WAITING_AT_HUB;
@@ -82,7 +82,7 @@ public class DeliveryService {
         deliveryManagerService.updateOrderId(hubDeliveryManager, delivery.getOrderId());
 
         // 예상 거리, 예상 소요시간은 HubRouteClient 호출
-        HubRouteDto hubRouteDto = hubRouteClient.getHubRoute(departureId, arrivalId);
+        HubRouteDto hubRouteDto = hubClient.getHubRoute(departureId, arrivalId, userId, username, role).getBody().getData();
         Integer expectDistance = hubRouteDto.getDuration();
         Integer expectDuration = hubRouteDto.getDistance();
 
@@ -106,7 +106,7 @@ public class DeliveryService {
         Long receiverId = request.getReceiverId() != null ? request.getReceiverId() : delivery.getReceiverId();
         String receiverSlackId = delivery.getReceiverSlackId();
         if (request.getReceiverId() != null) {
-            UserDto user = userClient.getUserById(receiverId).getBody().getData();
+            UserDto user = userClient.getUserById(receiverId, userId, username, role).getBody().getData();
             receiverId = user.getUserId();
             receiverSlackId = user.getSlackId();
         }
@@ -140,7 +140,7 @@ public class DeliveryService {
     }
 
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliveryById(UUID deliveryId, Long userId, String role) {
+    public DeliveryDto getDeliveryById(UUID deliveryId, String userId, String role) {
         // 기존 데이터 조회
         Delivery delivery = deliveryRepository.findByIdAndIsDeleteFalse(deliveryId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송을 찾을 수 없습니다."));
@@ -150,7 +150,7 @@ public class DeliveryService {
 
     @Transactional(readOnly = true)
     public Page<DeliveryDto> getDeliveries(String search, String deliveryStatus, UUID departureId, UUID arrivalId, Long deliveryManagerId,
-                                           Long receiverId, String createdFrom, String createdTo, Long userId, String role, Pageable pageable) {
+                                           Long receiverId, String createdFrom, String createdTo, String userId, String role, Pageable pageable) {
         Page<DeliveryDto> deliveries = deliveryRepository.searchDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
                 receiverId, createdFrom, createdTo, pageable);
         return deliveries;

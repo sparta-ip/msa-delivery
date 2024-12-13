@@ -13,5 +13,4 @@ public class HubRouteDto {
     private UUID hubRouteId;
     private Integer duration;
     private Integer distance;
-    // HubRouteDto 필드 추가
 }

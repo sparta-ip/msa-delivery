@@ -89,8 +89,9 @@ public class DeliveryController {
 
     @GetMapping("/{deliveryId}")
     public ResponseEntity<?> getDeliveryById(@PathVariable UUID deliveryId,
-                                            @RequestHeader("X-User_Id") Long userId,
-                                            @RequestHeader("X-Role") String role) {
+                                             @RequestHeader("X-User_Id") String userId,
+                                             @RequestHeader("X-Username") String username,
+                                             @RequestHeader("X-Role") String role) {
         try {
             DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, role);
             return ResponseEntity.status(HttpStatus.OK).body(
@@ -117,7 +118,8 @@ public class DeliveryController {
             @RequestParam(value = "receiver_id", required = false) Long receiverId,
             @RequestParam(value = "created_from", required = false) String createdFrom,
             @RequestParam(value = "created_to", required = false) String createdTo,
-            @RequestHeader("X-User_Id") Long userId,
+            @RequestHeader("X-User_Id") String userId,
+            @RequestHeader("X-Username") String username,
             @RequestHeader("X-Role") String role,
             Pageable pageable) {
         try {
