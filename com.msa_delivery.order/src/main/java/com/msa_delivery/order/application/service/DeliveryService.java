@@ -1,6 +1,7 @@
 package com.msa_delivery.order.application.service;
 
 import com.msa_delivery.order.application.dto.CompanyDataDto;
+import com.msa_delivery.order.application.dto.DeliveryManagerResponseDto;
 import com.msa_delivery.order.application.dto.DeliveryRequestDto;
 import com.msa_delivery.order.application.dto.DeliveryResponseDto;
 import com.msa_delivery.order.application.dto.ResponseDto;
@@ -8,7 +9,9 @@ import com.msa_delivery.order.application.feign.DeliveryClient;
 import com.msa_delivery.order.domain.model.Order;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.query.Page;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,12 +36,15 @@ public class DeliveryService {
 
     // 특정 주문에 해당하는 배송 담당자 ID 목록 조회
     public List<Long> getDeliveryManagerIdsByOrderId(UUID order_id) {
-        ResponseDto<List<Long>> response = deliveryClient.getDeliveryManagerIdsByOrderId(order_id);
+        ResponseDto<List<DeliveryManagerResponseDto>> response = deliveryClient.getDeliveryManagerIdsByOrderId(order_id);
 
-        if (response.getData() == null) {
+        if (response.getData() == null || response.getData().isEmpty()) {
             throw new RuntimeException("배송 담당자 정보 조회 실패");
         }
 
-        return response.getData();
+        // Stream을 사용하여 delivery_manager_id만 추출
+        return response.getData().stream()
+            .map(DeliveryManagerResponseDto::getDelivery_manager_id) // DeliveryManagerResponseDto에서 delivery_manager_id만 추출
+            .collect(Collectors.toList());
     }
 }

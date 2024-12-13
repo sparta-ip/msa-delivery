@@ -6,6 +6,7 @@ import com.msa_delivery.order.application.dto.ResponseDto;
 import com.msa_delivery.order.application.service.OrderService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -32,6 +34,8 @@ public class OrderController {
         @RequestHeader(value = "X-User_Id", required = true) String user_id,
         @RequestHeader(value = "X-Username", required = true) String username,
         @RequestHeader(value = "X-Role", required = true) String role) {
+
+        log.info("Request received in OrderController at /orders createOrder");
 
         return orderService.createOrder(orderRequestDto, username);
     }
