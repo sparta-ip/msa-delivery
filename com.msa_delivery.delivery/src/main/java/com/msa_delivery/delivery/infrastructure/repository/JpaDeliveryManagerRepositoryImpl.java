@@ -1,8 +1,8 @@
 package com.msa_delivery.delivery.infrastructure.repository;
 
-import com.msa_delivery.delivery.application.dto.DeliveryDto;
-import com.msa_delivery.delivery.domain.model.Delivery;
-import com.msa_delivery.delivery.domain.model.DeliveryStatus;
+import com.msa_delivery.delivery.application.dto.DeliveryManagerDto;
+import com.msa_delivery.delivery.domain.model.DeliveryManager;
+import com.msa_delivery.delivery.domain.model.DeliveryManagerType;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -10,37 +10,35 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.msa_delivery.delivery.domain.model.QDelivery.delivery;
+import static com.msa_delivery.delivery.domain.model.QDeliveryManager.deliveryManager;
 
 @RequiredArgsConstructor
-public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
+public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepository{
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<DeliveryDto> searchDeliveries(String search, String deliveryStatus, UUID departureId, UUID arrivalId,
-                                              Long deliveryManagerId, Long receiverId, String createdFrom, String createdTo, Pageable pageable) {
-
+    public Page<DeliveryManagerDto> searchManagers(String search, String type, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
+                                                   String createdFrom, String createdTo, Pageable pageable) {
         // 동적 정렬
         List<OrderSpecifier<?>> orderSpecifier = buildOrderSpecifier(pageable);
 
         // QueryDSL 실행
-        QueryResults<Delivery> results = queryFactory.selectFrom(delivery)
+        QueryResults<DeliveryManager> results = queryFactory.selectFrom(deliveryManager)
                 .where(nameContains(search),
-                        eqDeliveryStatus(deliveryStatus),
-                        eqDepartureId(departureId),
-                        eqArrivalId(arrivalId),
-                        eqDeliveryManagerId(deliveryManagerId),
-                        eqReceiverId(receiverId),
+                        eqType(type),
+                        eqHubId(hubId),
+                        eqOrderId(orderId),
+                        sequenceBetween(sequenceMin, sequenceMax),
                         createdDateBetween(createdFrom, createdTo),
                         isDeleteFalse()
                 )
@@ -53,40 +51,49 @@ public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
         long totalCount = results.getTotal();
 
         // 검색 결과를 DTO로 변환
-        List<DeliveryDto> content = results.getResults().stream()
-                .map(DeliveryDto::create)
+        List<DeliveryManagerDto> content = results.getResults().stream()
+                .map(DeliveryManagerDto::create)
                 .collect(Collectors.toList());
+
         return new PageImpl<>(content, pageable, totalCount);
     }
 
     // 삭제되지 않은 데이터 조건
     private BooleanExpression isDeleteFalse() {
-        return delivery.isDelete.isFalse();
+        return deliveryManager.isDelete.isFalse();
     }
 
-    // 배송 상태 조건
-    private BooleanExpression eqDeliveryStatus(String deliveryStatus) {
-        return deliveryStatus != null ? delivery.deliveryStatus.eq(DeliveryStatus.valueOf(deliveryStatus)) : null;
+    // 타입 조건
+    private BooleanExpression eqType(String type) {
+        return type != null ? deliveryManager.type.eq(DeliveryManagerType.valueOf(type)) : null;
     }
 
-    // 출발지 조건
-    private BooleanExpression eqDepartureId(UUID departureId) {
-        return departureId != null ? delivery.departureId.eq(departureId) : null;
+    // 허브 ID 조건
+    private BooleanExpression eqHubId(UUID hubId) {
+        return hubId != null ? deliveryManager.hubId.eq(hubId) : null;
     }
 
-    // 도착지 조건
-    private BooleanExpression eqArrivalId(UUID arrivalId) {
-        return arrivalId != null ? delivery.arrivalId.eq(arrivalId) : null;
+    // 허브 ID 조건
+    private BooleanExpression eqOrderId(UUID orderId) {
+        return orderId != null ? deliveryManager.orderId.eq(orderId) : null;
     }
 
-    // 배송 담당자 조건
-    private BooleanExpression eqDeliveryManagerId(Long deliveryManagerId) {
-        return deliveryManagerId != null ? delivery.deliveryManager.id.eq(deliveryManagerId) : null;
+    // 이름 포함 조건 (검색)
+    private BooleanExpression nameContains(String search) {
+        return search != null ? deliveryManager.slackId.containsIgnoreCase(search) : null;
     }
 
-    // 수령인 조건
-    private BooleanExpression eqReceiverId(Long receiverId) {
-        return receiverId != null ? delivery.receiverId.eq(receiverId) : null;
+    // 시퀀스 범위 조건
+    private BooleanExpression sequenceBetween(Integer sequenceMin, Integer sequenceMax) {
+        if (sequenceMin != null && sequenceMax != null) {
+            return deliveryManager.sequence.between(sequenceMin, sequenceMax);
+        } else if (sequenceMin != null) {
+            return deliveryManager.sequence.goe(sequenceMin);
+        } else if (sequenceMax != null) {
+            return deliveryManager.sequence.loe(sequenceMax);
+        } else {
+            return null;
+        }
     }
 
     // 생성일 범위 조건
@@ -95,19 +102,14 @@ public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
         LocalDateTime toDate = createdTo != null ? LocalDateTime.parse(createdTo) : null;
 
         if (fromDate != null && toDate != null) {
-            return delivery.createdAt.between(fromDate, toDate);
+            return deliveryManager.createdAt.between(fromDate, toDate);
         } else if (fromDate != null) {
-            return delivery.createdAt.goe(fromDate);
+            return deliveryManager.createdAt.goe(fromDate);
         } else if (toDate != null) {
-            return delivery.createdAt.loe(toDate);
+            return deliveryManager.createdAt.loe(toDate);
         } else {
             return null;
         }
-    }
-
-    // 이름 포함 조건 (검색)
-    private BooleanExpression nameContains(String search) {
-        return search != null ? delivery.address.containsIgnoreCase(search) : null;
     }
 
     // 정렬 조건 생성
@@ -124,12 +126,15 @@ public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
 
                 // 정렬 필드에 따른 OrderSpecifier 추가
                 switch (sortOrder.getProperty()) {
-                    case "address":
-                        orders.add(new OrderSpecifier<>(direction, delivery.address));
+                    case "sequence":
+                        orders.add(new OrderSpecifier<>(direction, deliveryManager.sequence));
+                        break;
+                    case "type":
+                        orders.add(new OrderSpecifier<>(direction, deliveryManager.type));
                         break;
                     case "createdAt":
                     default:
-                        orders.add(new OrderSpecifier<>(direction, delivery.createdAt));
+                        orders.add(new OrderSpecifier<>(direction, deliveryManager.createdAt));
                         break;
                 }
             }

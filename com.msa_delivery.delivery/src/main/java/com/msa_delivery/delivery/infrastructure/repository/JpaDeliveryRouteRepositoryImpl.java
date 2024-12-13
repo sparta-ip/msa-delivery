@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import static com.msa_delivery.delivery.domain.model.QDeliveryRoute.deliveryRoute;
 
 @RequiredArgsConstructor
-public class DeliveryRouteRepositoryImpl implements JpaDeliveryRouteRepository {
+public class JpaDeliveryRouteRepositoryImpl implements JpaDeliveryRouteRepository {
 
     private final JPAQueryFactory queryFactory;
 

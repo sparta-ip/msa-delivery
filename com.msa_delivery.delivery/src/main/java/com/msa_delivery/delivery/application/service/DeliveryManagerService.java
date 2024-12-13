@@ -11,6 +11,7 @@ import com.msa_delivery.delivery.infrastructure.client.UserDto;
 import com.msa_delivery.delivery.presentation.request.DeliveryManagerRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryManagerUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeliveryManagerService {
@@ -28,8 +30,9 @@ public class DeliveryManagerService {
 
     @Transactional
     public DeliveryManagerDto createManager(DeliveryManagerRequest request, String userId, String username, String role) {
+        log.info("Service createManager :: ");
         // 배송 담당자 확인
-        UserDto user = userClient.getUserById(request.getUserId()).getBody().getData();
+        UserDto user = userClient.getUserById(request.getUserId(), userId, username, role).getBody().getData();
         Long id = user.getUserId();
         String slackId = user.getSlackId();
 
@@ -39,7 +42,7 @@ public class DeliveryManagerService {
         // 업체 배송 담당자는 허브 ID 필수
         if (type == DeliveryManagerType.COMPANY_DELIVERY_MANAGER) {
             if (hubId != null) {
-                HubDto hub = hubClient.getHubById(request.getHubId()).getBody().getData();
+                HubDto hub = hubClient.getHubById(request.getHubId(), userId, username, role).getBody().getData();
                 hubId = hub.getHubId();
             } else {
                 throw new IllegalArgumentException("허브 ID 를 입력해주세요.");
@@ -73,7 +76,7 @@ public class DeliveryManagerService {
             // 타입 변경 시 허브 ID 유효성 검증
             if (newType.equals(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)) {
                 if (request.getHubId() != null) {
-                    HubDto hub = hubClient.getHubById(request.getHubId()).getBody().getData();
+                    HubDto hub = hubClient.getHubById(request.getHubId(), userId, username, role).getBody().getData();
                     hubId = hub.getHubId(); // 유효한 허브 ID로 설정
                 } else {
                     throw new IllegalArgumentException("허브 ID를 입력해주세요.");
@@ -89,7 +92,7 @@ public class DeliveryManagerService {
             if (type.equals(DeliveryManagerType.HUB_DELIVERY_MANAGER)) {
                 throw new IllegalArgumentException("허브 배송 담당자는 허브 ID를 설정할 수 없습니다.");
             } else if (type.equals(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)) {
-                HubDto hub = hubClient.getHubById(request.getHubId()).getBody().getData();
+                HubDto hub = hubClient.getHubById(request.getHubId(), userId, username, role).getBody().getData();
                 hubId = hub.getHubId();
             }
         }
@@ -126,7 +129,7 @@ public class DeliveryManagerService {
 
 
     @Transactional(readOnly = true)
-    public DeliveryManagerDto getManagerById(Long deliveryManagerId, Long userId, String role) {
+    public DeliveryManagerDto getManagerById(Long deliveryManagerId, String userId, String role) {
         // 배송 담당자 조회
         DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
@@ -135,9 +138,9 @@ public class DeliveryManagerService {
     }
 
     @Transactional(readOnly = true)
-    public Page<DeliveryManagerDto> getManagers(String search, String type, UUID hubId, Integer sequenceMin, Integer sequenceMax,
-                                                String createdFrom, String createdTo, Long userId, String role, Pageable pageable) {
-        return deliveryManagerRepository.searchManagers(search, type, hubId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
+    public Page<DeliveryManagerDto> getManagers(String search, String type, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
+                                                String createdFrom, String createdTo, String userId, String role, Pageable pageable) {
+        return deliveryManagerRepository.searchManagers(search, type, hubId, orderId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
     }
 
     @Transactional

@@ -97,7 +97,7 @@ public class DeliveryRouteService {
     }
 
     @Transactional(readOnly = true)
-    public DeliveryRouteDto getRouteById(UUID deliveryRouteId, Long userId, String role) {
+    public DeliveryRouteDto getRouteById(UUID deliveryRouteId, String userId, String role) {
         DeliveryRoute route = deliveryRouteRepository.findByIdAndIsDeleteFalse(deliveryRouteId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 경로를 찾을 수 없습니다."));
 
@@ -106,7 +106,7 @@ public class DeliveryRouteService {
 
     @Transactional(readOnly = true)
     public Page<DeliveryRouteDto> getRoutes(String deliveryStatus, UUID departureId, UUID arrivalId, Long deliveryManagerId,
-                                            String createdFrom, String createdTo, Long userId, String role, Pageable pageable) {
+                                            String createdFrom, String createdTo, String userId, String role, Pageable pageable) {
         return deliveryRouteRepository.searchRoutes(deliveryStatus, departureId, arrivalId, deliveryManagerId,
                 createdFrom, createdTo, pageable);
     }
