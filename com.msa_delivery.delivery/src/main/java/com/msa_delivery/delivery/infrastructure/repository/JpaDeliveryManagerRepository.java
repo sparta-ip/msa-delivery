@@ -7,6 +7,6 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface JpaDeliveryManagerRepository {
-    Page<DeliveryManagerDto> searchManagers(String search, String type, UUID hubId, Integer sequenceMin, Integer sequenceMax,
+    Page<DeliveryManagerDto> searchManagers(String search, String type, UUID hubId,UUID orderId, Integer sequenceMin, Integer sequenceMax,
                                             String createdFrom, String createdTo, Pageable pageable);
 }

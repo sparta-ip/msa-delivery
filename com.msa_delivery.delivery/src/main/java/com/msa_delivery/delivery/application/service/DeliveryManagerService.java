@@ -138,9 +138,9 @@ public class DeliveryManagerService {
     }
 
     @Transactional(readOnly = true)
-    public Page<DeliveryManagerDto> getManagers(String search, String type, UUID hubId, Integer sequenceMin, Integer sequenceMax,
+    public Page<DeliveryManagerDto> getManagers(String search, String type, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
                                                 String createdFrom, String createdTo, String userId, String role, Pageable pageable) {
-        return deliveryManagerRepository.searchManagers(search, type, hubId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
+        return deliveryManagerRepository.searchManagers(search, type, hubId, orderId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
     }
 
     @Transactional

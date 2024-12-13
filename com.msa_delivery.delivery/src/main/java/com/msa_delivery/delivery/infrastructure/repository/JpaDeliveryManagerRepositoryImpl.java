@@ -27,7 +27,7 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<DeliveryManagerDto> searchManagers(String search, String type, UUID hubId, Integer sequenceMin, Integer sequenceMax,
+    public Page<DeliveryManagerDto> searchManagers(String search, String type, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
                                                    String createdFrom, String createdTo, Pageable pageable) {
         // 동적 정렬
         List<OrderSpecifier<?>> orderSpecifier = buildOrderSpecifier(pageable);
@@ -37,6 +37,7 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
                 .where(nameContains(search),
                         eqType(type),
                         eqHubId(hubId),
+                        eqOrderId(orderId),
                         sequenceBetween(sequenceMin, sequenceMax),
                         createdDateBetween(createdFrom, createdTo),
                         isDeleteFalse()
@@ -70,6 +71,11 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
     // 허브 ID 조건
     private BooleanExpression eqHubId(UUID hubId) {
         return hubId != null ? deliveryManager.hubId.eq(hubId) : null;
+    }
+
+    // 허브 ID 조건
+    private BooleanExpression eqOrderId(UUID orderId) {
+        return orderId != null ? deliveryManager.orderId.eq(orderId) : null;
     }
 
     // 이름 포함 조건 (검색)

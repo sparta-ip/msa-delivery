@@ -112,6 +112,7 @@ public class DeliveryManagerController {
             @RequestParam(value = "search", required = false) String search, // 배송 담당자 타입
             @RequestParam(value = "type", required = false) String type, // 배송 담당자 타입
             @RequestParam(value = "hub_id", required = false) UUID hubId, // 허브 ID
+            @RequestParam(value = "order_id", required = false) UUID orderId, // 허브 ID
             @RequestParam(value = "sequence_min", required = false) Integer sequenceMin, // 최소 순번
             @RequestParam(value = "sequence_max", required = false) Integer sequenceMax, // 최대 순번
             @RequestParam(value = "created_from", required = false) String createdFrom, // 생성 시작일
@@ -122,7 +123,7 @@ public class DeliveryManagerController {
             Pageable pageable) {
         try {
             Page<DeliveryManagerDto> managers =
-                    deliveryManagerService.getManagers(search, type, hubId, sequenceMin, sequenceMax,
+                    deliveryManagerService.getManagers(search, type, hubId, orderId, sequenceMin, sequenceMax,
                             createdFrom, createdTo, userId, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(
