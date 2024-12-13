@@ -44,7 +44,7 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
-        if (path.startsWith("/api/auth") || path.equals("/api/fallback")) {
+        if (path.startsWith("/api/auth") || path.equals("/api/fallback") || path.startsWith("/springdoc")) {
             return chain.filter(exchange);
         }
 
