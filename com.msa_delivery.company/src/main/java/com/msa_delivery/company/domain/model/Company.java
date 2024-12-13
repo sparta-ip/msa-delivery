@@ -3,6 +3,8 @@ package com.msa_delivery.company.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -35,6 +37,9 @@ public class Company extends BaseEntity{
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private CompanyType type;
+
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Product> products = new ArrayList<>();
 
     public static Company create(Long managerId, String slackId, UUID hubId, String name,
                                  String address, CompanyType type) {
