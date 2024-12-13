@@ -122,6 +122,16 @@ public class DeliveryManagerService {
         manager.delete(username);
     }
 
+
+    @Transactional(readOnly = true)
+    public DeliveryManagerDto getManagerById(Long deliveryManagerId, Long userId, String role) {
+        // 배송 담당자 조회
+        DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
+
+        return DeliveryManagerDto.create(manager);
+    }
+
     @Transactional
     public void updateOrderId(DeliveryManager deliveryManager, UUID orderId) {
         deliveryManager.updateOrderId(orderId);
