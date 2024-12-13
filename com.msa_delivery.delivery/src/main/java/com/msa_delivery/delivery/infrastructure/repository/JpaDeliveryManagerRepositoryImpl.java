@@ -65,7 +65,7 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
 
     // 타입 조건
     private BooleanExpression eqType(String type) {
-        return type != null ? deliveryManager.type.eq(DeliveryManagerType.valueOf(type)) : null;
+        return type != null ? deliveryManager.type.eq(DeliveryManagerType.fromString(type)) : null;
     }
 
     // 허브 ID 조건

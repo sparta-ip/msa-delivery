@@ -66,7 +66,7 @@ public class JpaDeliveryRepositoryImpl implements JpaDeliveryRepository{
 
     // 배송 상태 조건
     private BooleanExpression eqDeliveryStatus(String deliveryStatus) {
-        return deliveryStatus != null ? delivery.deliveryStatus.eq(DeliveryStatus.valueOf(deliveryStatus)) : null;
+        return deliveryStatus != null ? delivery.deliveryStatus.eq(DeliveryStatus.fromString(deliveryStatus)) : null;
     }
 
     // 출발지 조건
