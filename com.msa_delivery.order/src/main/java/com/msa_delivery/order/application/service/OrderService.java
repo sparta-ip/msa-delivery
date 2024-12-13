@@ -7,6 +7,7 @@ import com.msa_delivery.order.application.dto.OrderRequestDto;
 import com.msa_delivery.order.application.dto.ProductDataDto;
 import com.msa_delivery.order.application.dto.ResponseDto;
 import com.msa_delivery.order.application.exception.AccessDeniedException;
+import com.msa_delivery.order.application.exception.InvalidInputException;
 import com.msa_delivery.order.application.exception.OrderCreationException;
 import com.msa_delivery.order.application.exception.OrderNotFoundException;
 import com.msa_delivery.order.application.exception.ProductNotFoundException;
@@ -136,6 +137,11 @@ public class OrderService {
     public ResponseDto<OrderDataDto> updateOrder(UUID order_id,
         OrderRequestDto.Update orderRequestDto) {
 
+        // 변경사항이 없으면 예외처리
+        if (orderRequestDto.getRequest() == null && orderRequestDto.getQuantity() == null) {
+            throw new InvalidInputException("수정사항이 없습니다.");
+        }
+
         // 주문 조회
         Order order = orderRepository.findById(order_id)
             .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
@@ -149,7 +155,7 @@ public class OrderService {
 
         // 기존 수량과 수정된 수량 차이 계산
         int originalQuantity = order.getQuantity();
-        int newQuantity = orderRequestDto.getQuantity();
+        int newQuantity = orderRequestDto.getQuantity() != null ? orderRequestDto.getQuantity() : originalQuantity;
 
         // 수정하려는 수량을 반영했을 때, 초기 상품 수량을 초과하는지 확인
         if (productData.getQuantity() + originalQuantity < newQuantity) {
@@ -161,13 +167,12 @@ public class OrderService {
 
         // 주문 수정
         order.updateOrder(orderRequestDto);
-        Order updatedOrder = orderRepository.save(order);
 
         // 상품 수량 감소: 수정된 수량만큼 줄임
         productService.reduceProductQuantity(productData.getProduct_id(), newQuantity);
 
         // 응답 데이터 생성
-        OrderDataDto orderDataDto = new OrderDataDto(updatedOrder);
+        OrderDataDto orderDataDto = new OrderDataDto(order);
         return new ResponseDto<>(HttpStatus.OK.value(), "주문이 수정되었습니다.", orderDataDto);
     }
 
@@ -184,8 +189,6 @@ public class OrderService {
         // 주문 상태를 CANCELLED로 업데이트
         order.updateStatus(OrderStatus.CANCELLED);
 
-        Order deletedOrder = orderRepository.save(order);
-
         // 상품 확인
         ProductDataDto productData = productService.getProduct(order.getProduct_id());
         if (productData == null) {
@@ -197,7 +200,7 @@ public class OrderService {
         productService.reduceProductQuantity(productData.getProduct_id(), order.getQuantity());
 
         // 응답 데이터 생성
-        OrderDataDto orderDataDto = new OrderDataDto(deletedOrder);
+        OrderDataDto orderDataDto = new OrderDataDto(order);
         return new ResponseDto<>(HttpStatus.OK.value(), "주문이 삭제되었습니다.", orderDataDto);
 
     }
@@ -357,6 +360,7 @@ public class OrderService {
     }
 
     // 업체의 업체 담당자 Id 가져오기
+    @Transactional(readOnly = true)
     public List<Long> getCompanyManagersIdByOrderId(UUID order_id) {
         Order order = orderRepository.findById(order_id)
             .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + order_id));
@@ -373,6 +377,7 @@ public class OrderService {
     }
 
     // 주문과 관련된 배송 담당자 ID 리스트 조회
+    @Transactional(readOnly = true)
     public List<Long> getDeliveryManagerIdsByOrderId(UUID order_id) {
         return deliveryService.getDeliveryManagerIdsByOrderId(order_id);
     }

@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 @Getter
 @NoArgsConstructor
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @Builder(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name= "p_orders", schema = "ORDER")
+@Where(clause = "is_deleted = false")
 public class Order extends BaseEntity {
 
     @Id
@@ -61,8 +63,12 @@ public class Order extends BaseEntity {
     }
 
     public void updateOrder(Update orderRequestDto) {
-        this.quantity = orderRequestDto.getQuantity();
-        this.request = orderRequestDto.getRequest();
+        if (orderRequestDto.getQuantity() != null) {
+            this.quantity = orderRequestDto.getQuantity();
+        }
+        if (orderRequestDto.getRequest() != null) {
+            this.request = orderRequestDto.getRequest();
+        }
     }
 
     public void updateStatus(OrderStatus status) {
