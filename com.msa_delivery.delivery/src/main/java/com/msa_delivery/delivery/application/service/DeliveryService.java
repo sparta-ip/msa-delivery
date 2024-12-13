@@ -57,7 +57,7 @@ public class DeliveryService {
         // 업체 배송 담당자 순차 배정
         // 배송 담당자 타입이 업체 배송 담당자이고 orderId 가 null 인 값 중에 sequence 가 가장 작은 값 (isDeleteIsFalse)
         DeliveryManager companyDeliveryManager = deliveryManagerRepository
-                .findFirstByDeliveryManagerTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)
+                .findFirstByTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)
                 .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 배송 담당자가 없습니다."));
         deliveryManagerService.updateOrderId(companyDeliveryManager, orderId);
 
@@ -77,7 +77,7 @@ public class DeliveryService {
         // 허브 간 배송 담당자 순차 배정
         // 배송 담당자 타입이 허브 배송 담당자이고 orderId 가 null 인 값 중에 sequence 가 가장 작은 값 (isDeleteIsFalse)
         DeliveryManager hubDeliveryManager = deliveryManagerRepository.
-                findFirstByDeliveryManagerTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType.HUB_DELIVERY_MANAGER)
+                findFirstByTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType.HUB_DELIVERY_MANAGER)
                 .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 배송 담당자가 없습니다."));
         deliveryManagerService.updateOrderId(hubDeliveryManager, delivery.getOrderId());
 

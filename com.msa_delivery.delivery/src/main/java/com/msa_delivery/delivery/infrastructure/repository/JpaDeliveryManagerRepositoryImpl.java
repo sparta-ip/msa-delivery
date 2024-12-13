@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import static com.msa_delivery.delivery.domain.model.QDeliveryManager.deliveryManager;
 
 @RequiredArgsConstructor
-public class DeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepository{
+public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepository{
 
     private final JPAQueryFactory queryFactory;
 

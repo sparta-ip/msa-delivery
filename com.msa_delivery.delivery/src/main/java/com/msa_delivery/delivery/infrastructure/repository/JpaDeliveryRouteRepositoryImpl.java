@@ -1,7 +1,7 @@
 package com.msa_delivery.delivery.infrastructure.repository;
 
-import com.msa_delivery.delivery.application.dto.DeliveryDto;
-import com.msa_delivery.delivery.domain.model.Delivery;
+import com.msa_delivery.delivery.application.dto.DeliveryRouteDto;
+import com.msa_delivery.delivery.domain.model.DeliveryRoute;
 import com.msa_delivery.delivery.domain.model.DeliveryStatus;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
@@ -10,37 +10,36 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.msa_delivery.delivery.domain.model.QDelivery.delivery;
+import static com.msa_delivery.delivery.domain.model.QDeliveryRoute.deliveryRoute;
 
 @RequiredArgsConstructor
-public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
+public class JpaDeliveryRouteRepositoryImpl implements JpaDeliveryRouteRepository {
 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<DeliveryDto> searchDeliveries(String search, String deliveryStatus, UUID departureId, UUID arrivalId,
-                                              Long deliveryManagerId, Long receiverId, String createdFrom, String createdTo, Pageable pageable) {
+    public Page<DeliveryRouteDto> searchRoutes(String deliveryStatus, UUID departureId, UUID arrivalId,
+                                               Long deliveryManagerId, String createdFrom, String createdTo,
+                                               Pageable pageable) {
 
         // 동적 정렬
         List<OrderSpecifier<?>> orderSpecifier = buildOrderSpecifier(pageable);
 
         // QueryDSL 실행
-        QueryResults<Delivery> results = queryFactory.selectFrom(delivery)
-                .where(nameContains(search),
-                        eqDeliveryStatus(deliveryStatus),
+        QueryResults<DeliveryRoute> results = queryFactory.selectFrom(deliveryRoute)
+                .where(eqDeliveryStatus(deliveryStatus),
                         eqDepartureId(departureId),
                         eqArrivalId(arrivalId),
                         eqDeliveryManagerId(deliveryManagerId),
-                        eqReceiverId(receiverId),
                         createdDateBetween(createdFrom, createdTo),
                         isDeleteFalse()
                 )
@@ -53,40 +52,36 @@ public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
         long totalCount = results.getTotal();
 
         // 검색 결과를 DTO로 변환
-        List<DeliveryDto> content = results.getResults().stream()
-                .map(DeliveryDto::create)
+        List<DeliveryRouteDto> content = results.getResults().stream()
+                .map(DeliveryRouteDto::create)
                 .collect(Collectors.toList());
+
         return new PageImpl<>(content, pageable, totalCount);
     }
 
     // 삭제되지 않은 데이터 조건
     private BooleanExpression isDeleteFalse() {
-        return delivery.isDelete.isFalse();
+        return deliveryRoute.isDelete.isFalse();
     }
 
     // 배송 상태 조건
-    private BooleanExpression eqDeliveryStatus(String deliveryStatus) {
-        return deliveryStatus != null ? delivery.deliveryStatus.eq(DeliveryStatus.valueOf(deliveryStatus)) : null;
+    private BooleanExpression eqDeliveryStatus(String status) {
+        return status != null ? deliveryRoute.deliveryStatus.eq(DeliveryStatus.valueOf(status)) : null;
     }
 
     // 출발지 조건
     private BooleanExpression eqDepartureId(UUID departureId) {
-        return departureId != null ? delivery.departureId.eq(departureId) : null;
+        return departureId != null ? deliveryRoute.departureId.eq(departureId) : null;
     }
 
     // 도착지 조건
     private BooleanExpression eqArrivalId(UUID arrivalId) {
-        return arrivalId != null ? delivery.arrivalId.eq(arrivalId) : null;
+        return arrivalId != null ? deliveryRoute.arrivalId.eq(arrivalId) : null;
     }
 
     // 배송 담당자 조건
-    private BooleanExpression eqDeliveryManagerId(Long deliveryManagerId) {
-        return deliveryManagerId != null ? delivery.deliveryManager.id.eq(deliveryManagerId) : null;
-    }
-
-    // 수령인 조건
-    private BooleanExpression eqReceiverId(Long receiverId) {
-        return receiverId != null ? delivery.receiverId.eq(receiverId) : null;
+    private BooleanExpression eqDeliveryManagerId(Long managerId) {
+        return managerId != null ? deliveryRoute.deliveryManager.id.eq(managerId) : null;
     }
 
     // 생성일 범위 조건
@@ -95,19 +90,14 @@ public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
         LocalDateTime toDate = createdTo != null ? LocalDateTime.parse(createdTo) : null;
 
         if (fromDate != null && toDate != null) {
-            return delivery.createdAt.between(fromDate, toDate);
+            return deliveryRoute.createdAt.between(fromDate, toDate);
         } else if (fromDate != null) {
-            return delivery.createdAt.goe(fromDate);
+            return deliveryRoute.createdAt.goe(fromDate);
         } else if (toDate != null) {
-            return delivery.createdAt.loe(toDate);
+            return deliveryRoute.createdAt.loe(toDate);
         } else {
             return null;
         }
-    }
-
-    // 이름 포함 조건 (검색)
-    private BooleanExpression nameContains(String search) {
-        return search != null ? delivery.address.containsIgnoreCase(search) : null;
     }
 
     // 정렬 조건 생성
@@ -124,12 +114,15 @@ public class DeliveryRepositoryImpl implements JpaDeliveryRepository{
 
                 // 정렬 필드에 따른 OrderSpecifier 추가
                 switch (sortOrder.getProperty()) {
-                    case "address":
-                        orders.add(new OrderSpecifier<>(direction, delivery.address));
+                    case "departureId":
+                        orders.add(new OrderSpecifier<>(direction, deliveryRoute.departureId));
+                        break;
+                    case "arrivalId":
+                        orders.add(new OrderSpecifier<>(direction, deliveryRoute.arrivalId));
                         break;
                     case "createdAt":
                     default:
-                        orders.add(new OrderSpecifier<>(direction, delivery.createdAt));
+                        orders.add(new OrderSpecifier<>(direction, deliveryRoute.createdAt));
                         break;
                 }
             }
