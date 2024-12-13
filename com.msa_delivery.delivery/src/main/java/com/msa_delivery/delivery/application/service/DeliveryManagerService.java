@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -55,6 +54,7 @@ public class DeliveryManagerService {
         return DeliveryManagerDto.create(deliveryManager);
     }
 
+    @Transactional
     public DeliveryManagerDto updateManager(Long deliveryManagerId, DeliveryManagerUpdateRequest request, String userId, String username, String role) {
         // 배송 담당자 조회
         DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
@@ -111,6 +111,15 @@ public class DeliveryManagerService {
         manager.update(type, hubId, sequence);
         manager.setUpdatedBy(username);
         return DeliveryManagerDto.create(manager);
+    }
+
+    @Transactional
+    public void deleteManager(Long deliveryManagerId, String userId, String username, String role) {
+        // 배송 담당자 조회
+        DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
+
+        manager.delete(username);
     }
 
     @Transactional
