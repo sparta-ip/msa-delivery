@@ -66,7 +66,7 @@ public class JpaDeliveryRouteRepositoryImpl implements JpaDeliveryRouteRepositor
 
     // 배송 상태 조건
     private BooleanExpression eqDeliveryStatus(String status) {
-        return status != null ? deliveryRoute.deliveryStatus.eq(DeliveryStatus.valueOf(status)) : null;
+        return status != null ? deliveryRoute.deliveryStatus.eq(DeliveryStatus.fromString(status)) : null;
     }
 
     // 출발지 조건

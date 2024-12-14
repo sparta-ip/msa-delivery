@@ -1,6 +1,7 @@
 package com.msa_delivery.delivery.application.service;
 
 import com.msa_delivery.delivery.application.dto.DeliveryManagerDto;
+import com.msa_delivery.delivery.application.util.CheckRole;
 import com.msa_delivery.delivery.domain.model.DeliveryManager;
 import com.msa_delivery.delivery.domain.model.DeliveryManagerType;
 import com.msa_delivery.delivery.domain.repository.DeliveryManagerRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @Slf4j
@@ -27,27 +29,21 @@ public class DeliveryManagerService {
     private final DeliveryManagerRepository deliveryManagerRepository;
     private final UserClient userClient;
     private final HubClient hubClient;
+    private final CheckRole checkRole;
 
     @Transactional
-    public DeliveryManagerDto createManager(DeliveryManagerRequest request, String userId, String username, String role) {
+    public DeliveryManagerDto createManager(DeliveryManagerRequest request, String userId, String username, String role) throws AccessDeniedException {
         log.info("Service createManager :: ");
-        // 배송 담당자 확인
+        // 배송 담당자 타입
+        DeliveryManagerType type = DeliveryManagerType.fromString(request.getType());
+        UUID hubId = request.getHubId();
+        // 권한 검증
+        checkRole.validateManagerRole(userId, username, role, hubId, null, "생성", type);
+
+        // 배송 담당자 확인 (해당 유저가 있는지)
         UserDto user = userClient.getUserById(request.getUserId(), userId, username, role).getBody().getData();
         Long id = user.getUserId();
         String slackId = user.getSlackId();
-
-        // 배송 담당자 타입
-        UUID hubId = request.getHubId();
-        DeliveryManagerType type = DeliveryManagerType.fromString(request.getType());
-        // 업체 배송 담당자는 허브 ID 필수
-        if (type == DeliveryManagerType.COMPANY_DELIVERY_MANAGER) {
-            if (hubId != null) {
-                HubDto hub = hubClient.getHubById(request.getHubId(), userId, username, role).getBody().getData();
-                hubId = hub.getHubId();
-            } else {
-                throw new IllegalArgumentException("허브 ID 를 입력해주세요.");
-            }
-        }
 
         // 최대 시퀀스 값 가져오기
         Integer maxSequence = deliveryManagerRepository.findMaxSequenceByType(type);
@@ -60,42 +56,19 @@ public class DeliveryManagerService {
     }
 
     @Transactional
-    public DeliveryManagerDto updateManager(Long deliveryManagerId, DeliveryManagerUpdateRequest request, String userId, String username, String role) {
+    public DeliveryManagerDto updateManager(Long deliveryManagerId, DeliveryManagerUpdateRequest request, String userId, String username, String role) throws AccessDeniedException {
         // 배송 담당자 조회
         DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
 
-        // 기존 타입 확인
-        DeliveryManagerType type = manager.getType();
-        UUID hubId = manager.getHubId(); // 기존 허브 ID 유지
-
         // 타입 및 허브 ID 변경 처리
-        if (request.getType() != null) {
-            DeliveryManagerType newType = DeliveryManagerType.fromString(request.getType());
+        DeliveryManagerType type = request.getType() != null
+                ? DeliveryManagerType.fromString(request.getType())
+                : manager.getType();
+        UUID hubId = request.getHubId() != null ? request.getHubId() : manager.getHubId();
 
-            // 타입 변경 시 허브 ID 유효성 검증
-            if (newType.equals(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)) {
-                if (request.getHubId() != null) {
-                    HubDto hub = hubClient.getHubById(request.getHubId(), userId, username, role).getBody().getData();
-                    hubId = hub.getHubId(); // 유효한 허브 ID로 설정
-                } else {
-                    throw new IllegalArgumentException("허브 ID를 입력해주세요.");
-                }
-            } else if (newType.equals(DeliveryManagerType.HUB_DELIVERY_MANAGER)) {
-                // 허브 배송 담당자는 허브 ID를 null 로 설정
-                hubId = null;
-            }
-
-            type = newType; // 타입 변경 적용
-        } else if (request.getHubId() != null) {
-            // 타입 변경 없이 허브 ID만 전달된 경우
-            if (type.equals(DeliveryManagerType.HUB_DELIVERY_MANAGER)) {
-                throw new IllegalArgumentException("허브 배송 담당자는 허브 ID를 설정할 수 없습니다.");
-            } else if (type.equals(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)) {
-                HubDto hub = hubClient.getHubById(request.getHubId(), userId, username, role).getBody().getData();
-                hubId = hub.getHubId();
-            }
-        }
+        // 권한 검증
+        checkRole.validateManagerRole(role, userId, username, hubId, deliveryManagerId, "수정", type);
 
         // Sequence 수정 및 관계 고려
         Integer sequence = request.getSequence() != null ? request.getSequence() : manager.getSequence();
@@ -112,35 +85,64 @@ public class DeliveryManagerService {
             deliveryManagerRepository.incrementSequence(type, sequence);
         }
 
-
         manager.update(type, hubId, sequence);
         manager.setUpdatedBy(username);
         return DeliveryManagerDto.create(manager);
     }
 
     @Transactional
-    public void deleteManager(Long deliveryManagerId, String userId, String username, String role) {
+    public void deleteManager(Long deliveryManagerId, String userId, String username, String role) throws AccessDeniedException {
         // 배송 담당자 조회
         DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
+        // 권한 검증
+        checkRole.validateManagerRole(userId, username, role, manager.getHubId(), deliveryManagerId, "삭제", manager.getType());
 
         manager.delete(username);
     }
 
 
     @Transactional(readOnly = true)
-    public DeliveryManagerDto getManagerById(Long deliveryManagerId, String userId, String role) {
+    public DeliveryManagerDto getManagerById(Long deliveryManagerId, String userId, String username, String role) throws AccessDeniedException {
         // 배송 담당자 조회
         DeliveryManager manager = deliveryManagerRepository.findByIdAndIsDeleteFalse(deliveryManagerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송 담당자를 찾을 수 없습니다."));
-
+        // 권한 검증
+        checkRole.validateManagerRole(userId, username, role, manager.getHubId(), deliveryManagerId, "조회", manager.getType());
         return DeliveryManagerDto.create(manager);
     }
 
     @Transactional(readOnly = true)
-    public Page<DeliveryManagerDto> getManagers(String search, String type, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
-                                                String createdFrom, String createdTo, String userId, String role, Pageable pageable) {
-        return deliveryManagerRepository.searchManagers(search, type, hubId, orderId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
+    public Page<DeliveryManagerDto> getManagers(String search, String type, Long deliveryManagerId, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
+                                                String createdFrom, String createdTo, String userId, String role, Pageable pageable) throws AccessDeniedException {
+
+        // 역할별 검색 조건 설정
+        switch (role) {
+            case "MASTER":
+                break;
+            case "HUB_MANAGER":
+                if (hubId != null) {
+                    // 허브 ID 유효성 검사
+                    HubDto hub = hubClient.getHubById(hubId, userId, userId, role).getBody().getData();
+                    Long hubManagerId = hub.getHubManagerId();
+                    if (!Long.valueOf(userId).equals(hubManagerId)) {
+                        throw new AccessDeniedException("허브 관리자는 자신의 허브에만 접근할 수 있습니다.");
+                    }
+                }
+                break;
+            case "DELIVERY_MANAGER":
+                // 배송 담당자는 본인 ID로 강제 필터링
+                deliveryManagerId = Long.valueOf(userId);
+                break;
+            case "COMPANY_MANAGER":
+                // 업체 담당자는 모든 작업 불가
+                throw new AccessDeniedException("업체 담당자는 배송 담당자를 검색할 권한이 없습니다.");
+
+            default:
+                throw new IllegalArgumentException("유효하지 않은 역할입니다.");
+        }
+
+        return deliveryManagerRepository.searchManagers(search, type, deliveryManagerId, hubId, orderId, sequenceMin, sequenceMax, createdFrom, createdTo, pageable);
     }
 
     @Transactional

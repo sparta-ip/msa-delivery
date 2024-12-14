@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @RestController
@@ -26,21 +27,11 @@ public class DeliveryManagerController {
     public ResponseEntity<?> createManager(@Valid @RequestBody DeliveryManagerRequest request,
                                             @RequestHeader("X-User_Id") String userId,
                                             @RequestHeader("X-Username") String username,
-                                            @RequestHeader("X-Role") String role) {
-        try {
-            DeliveryManagerDto manager = deliveryManagerService.createManager(request, userId, username, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 담당자 생성이 완료되었습니다.", manager)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 담당자 생성 중 오류가 발생했습니다.")
-            );
-        }
+                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        DeliveryManagerDto manager = deliveryManagerService.createManager(request, userId, username, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommonResponse.success(HttpStatus.CREATED, "배송 담당자 생성이 완료되었습니다.", manager)
+        );
     }
 
     @PutMapping("/{deliveryManagerId}")
@@ -48,69 +39,40 @@ public class DeliveryManagerController {
                                            @RequestBody DeliveryManagerUpdateRequest request,
                                            @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
-                                           @RequestHeader("X-Role") String role) {
-        try {
-            DeliveryManagerDto manager = deliveryManagerService.updateManager(deliveryManagerId, request, userId, username, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 담당자 정보 수정이 완료되었습니다.", manager)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 담당자 정보 수정 중 오류가 발생했습니다.")
-            );
-        }
+                                           @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        DeliveryManagerDto manager = deliveryManagerService.updateManager(deliveryManagerId, request, userId, username, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommonResponse.success(HttpStatus.CREATED, "배송 담당자 정보 수정이 완료되었습니다.", manager)
+        );
     }
 
     @DeleteMapping("/{deliveryManagerId}")
     public ResponseEntity<?> deleteManager(@PathVariable Long deliveryManagerId,
                                          @RequestHeader("X-User_Id") String userId,
                                          @RequestHeader("X-Username") String username,
-                                         @RequestHeader("X-Role") String role) {
-        try {
-            deliveryManagerService.deleteManager(deliveryManagerId, userId, username, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 담당자 정보 삭제가 완료되었습니다.")
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 담당자 삭제 중 오류가 발생했습니다.")
-            );
-        }
+                                         @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        deliveryManagerService.deleteManager(deliveryManagerId, userId, username, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommonResponse.success(HttpStatus.CREATED, "배송 담당자 정보 삭제가 완료되었습니다.")
+        );
     }
 
     @GetMapping("/{deliveryManagerId}")
     public ResponseEntity<?> getManagerById(@PathVariable Long deliveryManagerId,
                                             @RequestHeader("X-User_Id") String userId,
                                             @RequestHeader("X-Username") String username,
-                                            @RequestHeader("X-Role") String role) {
-        try {
-            DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, role);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    CommonResponse.success(HttpStatus.OK, "배송 담당자 상세 조회가 완료되었습니다.", manager)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CommonResponse.error(HttpStatus.NOT_FOUND, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 담당자 조회 중 오류가 발생했습니다.")
-            );
-        }
+                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, username, role);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                CommonResponse.success(HttpStatus.OK, "배송 담당자 상세 조회가 완료되었습니다.", manager)
+        );
     }
 
     @GetMapping
     public ResponseEntity<?> getManagers(
             @RequestParam(value = "search", required = false) String search, // 배송 담당자 타입
             @RequestParam(value = "type", required = false) String type, // 배송 담당자 타입
+            @RequestParam(value = "delivery_manager_id", required = false) Long deliveryManagerId, // 허브 ID
             @RequestParam(value = "hub_id", required = false) UUID hubId, // 허브 ID
             @RequestParam(value = "order_id", required = false) UUID orderId, // 허브 ID
             @RequestParam(value = "sequence_min", required = false) Integer sequenceMin, // 최소 순번
@@ -120,23 +82,13 @@ public class DeliveryManagerController {
             @RequestHeader("X-User_Id") String userId,
             @RequestHeader("X-Username") String username,
             @RequestHeader("X-Role") String role,
-            Pageable pageable) {
-        try {
-            Page<DeliveryManagerDto> managers =
-                    deliveryManagerService.getManagers(search, type, hubId, orderId, sequenceMin, sequenceMax,
-                            createdFrom, createdTo, userId, role, pageable);
+            Pageable pageable) throws AccessDeniedException {
+        Page<DeliveryManagerDto> managers =
+                deliveryManagerService.getManagers(search, type, deliveryManagerId, hubId, orderId, sequenceMin, sequenceMax,
+                        createdFrom, createdTo, userId, role, pageable);
 
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", managers)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "검색 중 오류가 발생했습니다.")
-            );
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(
+                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", managers)
+        );
     }
 }

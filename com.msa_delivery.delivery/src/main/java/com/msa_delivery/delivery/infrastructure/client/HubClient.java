@@ -20,7 +20,7 @@ public interface HubClient {
                                                       @RequestHeader("X-Role") String role);
 
     // 출발 허브와 도착 허브를 넣을 때, 허브 간 경로의 정보를 찾아주는 함수 (search)
-    @GetMapping("/api/hub-routes")
+    @GetMapping("/api/hubs/hub-routes")
     ResponseEntity<CommonResponse<HubRouteDto>> getHubRoute(@RequestParam UUID departureId, @RequestParam UUID arrivalId,
                                                             @RequestHeader("X-User_Id") String userId,
                                                             @RequestHeader("X-Username") String username,
