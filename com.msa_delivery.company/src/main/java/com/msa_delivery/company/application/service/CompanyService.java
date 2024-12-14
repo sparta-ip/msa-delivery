@@ -41,7 +41,7 @@ public class CompanyService {
         Long hubManagerId = hub.getHubManagerId();  // 허브 담당자 ID;
 
         // 권한 체크
-        checkCreateRole(role, userId, username,hubManagerId);
+        checkRole(role, userId, username, hubId, hubManagerId, null, "생성");
 
         // UserClient 연동
         // managerId 체크 후 userId, slackId 반환
@@ -72,7 +72,7 @@ public class CompanyService {
         UUID companyHubId = company.getHubId();         // 기존 업체 허브 ID
 
         // 권한 체크
-        checkUpdateRole(role, userId, username, companyHubId, companyManagerId);
+        checkRole(role, userId, username, companyHubId, null, companyManagerId, "수정");
 
         // 주소, 허브 ID 업데이트
         String address = request.getAddress() != null ? request.getAddress() : company.getAddress();
@@ -110,7 +110,7 @@ public class CompanyService {
         UUID companyHubId = company.getHubId();         // 기존 업체 허브 ID
 
         // 권한 체크
-        checkDeleteRole(role, userId, username, companyHubId);
+        checkRole(role, userId, username, companyHubId, null, null, "삭제");
 
         company.delete(username);
     }
@@ -127,81 +127,35 @@ public class CompanyService {
         return companyRepository.searchCompanies(type, search, managerId, hubId, pageable);
     }
 
-    private void checkDeleteRole(String role, String userId, String username, UUID companyHubId) throws AccessDeniedException {
+    // 권한 검증 공통 메서드
+    private void checkRole(String role, String userId, String username, UUID hubId, Long hubManagerId, Long companyManagerId, String action) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
                 break;
 
             case "HUB_MANAGER":
-                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
-                Long hubManagerId = hub.getHubManagerId();
-
-                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 허브의 업체를 삭제할 권한이 없습니다.");
-                }
-                break;
-
-            case "DELIVERY_MANAGER":
-            case "COMPANY_MANAGER":
-                // 배송 담당자와 업체 담당자는 삭제 권한 없음
-                throw new AccessDeniedException("해당 권한으로는 업체를 삭제할 수 없습니다.");
-
-            default:
-                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
-        }
-    }
-
-    private void checkCreateRole(String role, String userId, String username, Long hubManagerId) throws AccessDeniedException {
-        switch (role) {
-            case "MASTER":
-                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                break;
-
-            case "HUB_MANAGER":
-                // 요청 헤더의 허브 ID와 매핑된 허브 ID 비교
-                if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 허브에서 업체를 생성할 권한이 없습니다.");
-                }
-                break;
-
-            case "DELIVERY_MANAGER":
-            case "COMPANY_MANAGER":
-                // 배송 담당자와 업체 담당자는 생성 권한 없음
-                throw new AccessDeniedException("해당 권한으로는 업체를 생성할 수 없습니다.");
-
-            default:
-                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
-        }
-    }
-
-    private void checkUpdateRole(String role, String userId, String username, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {
-        switch (role) {
-            case "MASTER":
-                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                break;
-
-            case "HUB_MANAGER":
-                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
-                Long hubManagerId = hub.getHubManagerId();
-
-                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 허브의 업체를 수정할 권한이 없습니다.");
+                if (hubId != null) {
+                    HubDto hub = hubClient.getHubById(hubId, userId, username, role).getBody().getData();
+                    if (!hub.getHubManagerId().equals(Long.valueOf(userId))) {
+                        throw new AccessDeniedException(String.format("해당 허브의 업체를 %s할 권한이 없습니다.", action));
+                    }
+                } else if (hubManagerId != null && !hubManagerId.equals(Long.valueOf(userId))) {
+                    throw new AccessDeniedException(String.format("해당 허브의 업체를 %s할 권한이 없습니다.", action));
                 }
                 break;
 
             case "COMPANY_MANAGER":
-                // 요청 헤더의 userId와 매핑된 companyManagerId 비교
-                if (!Long.valueOf(userId).equals(companyManagerId)) {
-                    throw new AccessDeniedException("본인의 업체만 수정할 수 있습니다");
+                if (!"삭제".equals(action) && companyManagerId != null && !companyManagerId.equals(Long.valueOf(userId))) {
+                    throw new AccessDeniedException("본인의 업체만 수정할 수 있습니다.");
                 }
+                if ("삭제".equals(action)) {
+                    throw new AccessDeniedException("해당 권한으로는 업체를 삭제할 수 없습니다.");
+                }
+                break;
+
             case "DELIVERY_MANAGER":
-                // 배송 담당자와 업체 담당자는 생성 권한 없음
-                throw new AccessDeniedException("해당 권한으로는 업체를 수정할 수 없습니다.");
+                throw new AccessDeniedException(String.format("해당 권한으로는 업체를 %s할 수 없습니다.", action));
 
             default:
                 throw new IllegalArgumentException("유효하지 않은 권한입니다.");

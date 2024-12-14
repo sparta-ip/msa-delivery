@@ -34,7 +34,7 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
         UUID hubId = company.getHubId();
         // 권한 체크
-        checkCreateRole(role, userId, username, hubId, company.getManagerId());
+        checkRole(role, userId, username, hubId, company.getManagerId(), "생성");
 
         String name = request.getName();
         Integer price = request.getPrice();
@@ -57,7 +57,7 @@ public class ProductService {
         UUID hubId = product.getHubId();
 
         // 권한 확인
-        checkUpdateRole(role, userId, username, hubId, managerId);
+        checkRole(role, userId, username, hubId, managerId, "수정");
 
         // 업체, 허브 업데이트
         UUID companyId = request.getCompanyId() != null ? request.getCompanyId() : product.getCompany().getId();
@@ -67,7 +67,7 @@ public class ProductService {
                     .orElseThrow(() -> new IllegalArgumentException("해당 업체를 찾을 수 없습니다."));
             hubId = company.getHubId();
             // 권한 확인
-            checkCreateRole(role, userId, username, hubId, managerId);
+            checkRole(role, userId, username, hubId, managerId, "수정");
         }
 
         String name = request.getName() != null ? request.getName() : product.getName();
@@ -88,7 +88,7 @@ public class ProductService {
         UUID hubId = product.getHubId();
 
         // 권한 확인
-        checkDeleteRole(role, userId, username, hubId);
+        checkRole(role, userId, username, hubId, null, "삭제");
 
         product.delete(username);
     }
@@ -101,7 +101,7 @@ public class ProductService {
 
         // 권한 확인
         UUID hubId = product.getHubId();
-        checkReadyRole(role, userId, username, hubId);
+        checkRole(role, userId, username, hubId, null, "조회");
 
         return ProductDto.create(product);
     }
@@ -122,12 +122,8 @@ public class ProductService {
             if (!Long.valueOf(userId).equals(hubManagerId)) {
                 throw new AccessDeniedException("해당 허브 상품에 대한 권한이 없습니다.");
             }
-            // 허브 ID로 필터링 추가
-            return productRepository.searchProducts(search, minPrice, maxPrice, minQuantity, maxQuantity, pageable, hubId);
         }
-
-        // 다른 역할(MASTER, COMPANY_MANAGER, DELIVERY_MANAGER)은 모든 데이터를 검색 가능
-        return productRepository.searchProducts(search, minPrice, maxPrice, minQuantity, maxQuantity, pageable, null);
+        return productRepository.searchProducts(search, minPrice, maxPrice, minQuantity, maxQuantity, pageable, hubId);
     }
 
     @Transactional
@@ -140,7 +136,7 @@ public class ProductService {
         product.reduceQuantity(quantity);
     }
 
-    private void checkCreateRole(String role, String userId, String username, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {
+    private void checkRole(String role, String userId, String username, UUID companyHubId, Long companyManagerId, String action) throws AccessDeniedException {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
@@ -153,105 +149,29 @@ public class ProductService {
 
                 // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
                 if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 업체의 상품을 생성할 권한이 없습니다.");
+                    throw new AccessDeniedException(String.format("해당 허브의 업체를 %s할 권한이 없습니다.", action));
+                }
+                break;
+
+            case "DELIVERY_MANAGER":
+                if (!"조회".equals(action)) {
+                    throw new AccessDeniedException(String.format("해당 권한으로는 업체를 %s할 수 없습니다.", action));
                 }
                 break;
 
             case "COMPANY_MANAGER":
-                // 요청 헤더의 userId와 매핑된 companyManagerId 비교
-                if (!Long.valueOf(userId).equals(companyManagerId)) {
-                    throw new AccessDeniedException("본인의 업체의 상품만 생성할 수 있습니다");
+                if ("생성".equals(action) || "수정".equals(action)) {
+                    if (!Long.valueOf(userId).equals(companyManagerId)) {
+                        throw new AccessDeniedException(String.format("본인의 업체의 상품만 %s할 수 있습니다.", action));
+                    }
+                } else if ("삭제".equals(action)) {
+                    throw new AccessDeniedException("해당 권한으로는 상품을 삭제할 수 없습니다.");
                 }
-            case "DELIVERY_MANAGER":
-                // 배송 담당자와 업체 담당자는 생성 권한 없음
-                throw new AccessDeniedException("해당 권한으로는 상품을 생성할 수 없습니다.");
+                break;
 
             default:
                 throw new IllegalArgumentException("유효하지 않은 권한입니다.");
         }
     }
 
-    private void checkUpdateRole(String role, String userId, String username, UUID companyHubId, Long companyManagerId) throws AccessDeniedException {
-        switch (role) {
-            case "MASTER":
-                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                break;
-
-            case "HUB_MANAGER":
-                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
-                Long hubManagerId = hub.getHubManagerId();
-
-                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 업체의 상품을 수정할 권한이 없습니다.");
-                }
-                break;
-
-            case "COMPANY_MANAGER":
-                // 요청 헤더의 userId와 매핑된 companyManagerId 비교
-                if (!Long.valueOf(userId).equals(companyManagerId)) {
-                    throw new AccessDeniedException("본인의 업체의 상품만 수정할 수 있습니다");
-                }
-            case "DELIVERY_MANAGER":
-                // 배송 담당자와 업체 담당자는 생성 권한 없음
-                throw new AccessDeniedException("해당 권한으로는 상품을 수정할 수 없습니다.");
-
-            default:
-                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
-        }
-    }
-
-    private void checkDeleteRole(String role, String userId, String username, UUID companyHubId) throws AccessDeniedException {
-        switch (role) {
-            case "MASTER":
-                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                break;
-
-            case "HUB_MANAGER":
-                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
-                Long hubManagerId = hub.getHubManagerId();
-
-                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 업체의 상품을 삭제할 권한이 없습니다.");
-                }
-                break;
-
-            case "DELIVERY_MANAGER":
-            case "COMPANY_MANAGER":
-                // 배송 담당자와 업체 담당자는 삭제 권한 없음
-                throw new AccessDeniedException("해당 권한으로는 업체를 삭제할 수 없습니다.");
-
-            default:
-                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
-        }
-    }
-
-    private void checkReadyRole(String role, String userId, String username, UUID companyHubId) throws AccessDeniedException {
-        switch (role) {
-            case "MASTER":
-            case "DELIVERY_MANAGER":
-            case "COMPANY_MANAGER":
-                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                // DELIVERY_MANAGER, COMPANY_MANAGER 는 모든 조회 및 검색 가능
-                break;
-
-            case "HUB_MANAGER":
-                // HubClient 를 사용하여 companyHubId를 기반으로 허브 정보를 조회
-                HubDto hub = hubClient.getHubById(companyHubId, userId, username, role).getBody().getData();
-                Long hubManagerId = hub.getHubManagerId();
-
-                // 허브 ID에 매핑된 허브 관리자 ID와 현재 userId 비교
-                if (!Long.valueOf(userId).equals(hubManagerId)) {
-                    throw new AccessDeniedException("해당 업체의 상품을 조회할 권한이 없습니다.");
-                }
-                break;
-
-
-            default:
-                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
-        }
-    }
 }
