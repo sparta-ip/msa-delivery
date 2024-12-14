@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @RestController
@@ -28,20 +29,10 @@ public class DeliveryController {
                                            @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
-        try {
-            DeliveryCreateDto delivery = deliveryService.createDelivery(request, userId, username, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 생성이 완료되었습니다.", delivery)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 생성 중 오류가 발생했습니다.")
-            );
-        }
+        DeliveryCreateDto delivery = deliveryService.createDelivery(request, userId, username, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommonResponse.success(HttpStatus.CREATED, "배송 생성이 완료되었습니다.", delivery)
+        );
     }
 
     @PutMapping("/{deliveryId}")
@@ -49,63 +40,33 @@ public class DeliveryController {
                                             @RequestBody DeliveryUpdateRequest request,
                                             @RequestHeader("X-User_Id") String userId,
                                             @RequestHeader("X-Username") String username,
-                                            @RequestHeader("X-Role") String role) {
-        try {
-            DeliveryDto delivery = deliveryService.updateDelivery(deliveryId, request, userId, username, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 정보 수정이 완료되었습니다.", delivery)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 정보 수정 중 오류가 발생했습니다.")
-            );
-        }
+                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        DeliveryDto delivery = deliveryService.updateDelivery(deliveryId, request, userId, username, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommonResponse.success(HttpStatus.CREATED, "배송 정보 수정이 완료되었습니다.", delivery)
+        );
     }
 
     @DeleteMapping("/{deliveryId}")
     public ResponseEntity<?> deleteDelivery(@PathVariable UUID deliveryId,
                                             @RequestHeader("X-User_Id") String userId,
                                             @RequestHeader("X-Username") String username,
-                                            @RequestHeader("X-Role") String role) {
-        try {
-            deliveryService.deleteDelivery(deliveryId, userId, username, role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    CommonResponse.success(HttpStatus.CREATED, "배송 정보 삭제가 완료되었습니다.")
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 정보 삭제 중 오류가 발생했습니다.")
-            );
-        }
+                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        deliveryService.deleteDelivery(deliveryId, userId, username, role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                CommonResponse.success(HttpStatus.CREATED, "배송 정보 삭제가 완료되었습니다.")
+        );
     }
 
     @GetMapping("/{deliveryId}")
     public ResponseEntity<?> getDeliveryById(@PathVariable UUID deliveryId,
                                              @RequestHeader("X-User_Id") String userId,
                                              @RequestHeader("X-Username") String username,
-                                             @RequestHeader("X-Role") String role) {
-        try {
-            DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, username, role);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", delivery)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CommonResponse.error(HttpStatus.NOT_FOUND, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "배송 조회 중 오류가 발생했습니다.")
-            );
-        }
+                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
+        DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, username, role);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", delivery)
+        );
     }
 
     @GetMapping
@@ -121,24 +82,14 @@ public class DeliveryController {
             @RequestHeader("X-User_Id") String userId,
             @RequestHeader("X-Username") String username,
             @RequestHeader("X-Role") String role,
-            Pageable pageable) {
-        try {
-            Page<DeliveryDto> deliveries =
-                    deliveryService.getDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
-                            receiverId, createdFrom, createdTo, userId, username, role, pageable);
+            Pageable pageable) throws AccessDeniedException {
+        Page<DeliveryDto> deliveries =
+                deliveryService.getDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
+                        receiverId, createdFrom, createdTo, userId, username, role, pageable);
 
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveries)
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                    CommonResponse.error(HttpStatus.FORBIDDEN, e.getMessage())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CommonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "검색 중 오류가 발생했습니다.")
-            );
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(
+                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveries)
+        );
     }
 
 }
