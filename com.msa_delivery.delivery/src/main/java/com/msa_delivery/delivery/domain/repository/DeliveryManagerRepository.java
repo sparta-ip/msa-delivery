@@ -13,8 +13,6 @@ import java.util.Optional;
 public interface DeliveryManagerRepository  extends JpaRepository<DeliveryManager, Long>, JpaDeliveryManagerRepository {
     Optional<DeliveryManager> findByIdAndIsDeleteFalse(Long deliveryManagerId);
 
-    Optional<DeliveryManager> findFirstByTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType type);
-
     @Query("SELECT MAX(dm.sequence) FROM DeliveryManager dm WHERE dm.type = :type AND dm.isDelete = false")
     Integer findMaxSequenceByType(@Param("type") DeliveryManagerType type);
 

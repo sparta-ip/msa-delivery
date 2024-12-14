@@ -2,6 +2,7 @@ package com.msa_delivery.delivery.application.service;
 
 import com.msa_delivery.delivery.application.dto.DeliveryCreateDto;
 import com.msa_delivery.delivery.application.dto.DeliveryDto;
+import com.msa_delivery.delivery.application.util.CheckRole;
 import com.msa_delivery.delivery.domain.model.*;
 import com.msa_delivery.delivery.domain.repository.DeliveryManagerRepository;
 import com.msa_delivery.delivery.domain.repository.DeliveryRepository;
@@ -29,6 +30,7 @@ public class DeliveryService {
     private final DeliveryManagerService deliveryManagerService;
     private final HubClient hubClient;
     private final UserClient userClient;
+    private final CheckRole checkRole;
 
     @Transactional
     public DeliveryCreateDto createDelivery(DeliveryRequest request, String userId, String username, String role) {
@@ -60,7 +62,7 @@ public class DeliveryService {
         // 업체 배송 담당자 순차 배정
         // 배송 담당자 타입이 업체 배송 담당자이고 orderId 가 null 인 값 중에 sequence 가 가장 작은 값 (isDeleteIsFalse)
         DeliveryManager companyDeliveryManager = deliveryManagerRepository
-                .findFirstByTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType.COMPANY_DELIVERY_MANAGER)
+                .findAvailableDeliveryManager(DeliveryManagerType.COMPANY_DELIVERY_MANAGER, arrivalId)
                 .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 배송 담당자가 없습니다."));
         deliveryManagerService.updateOrderId(companyDeliveryManager, orderId);
 
@@ -79,8 +81,8 @@ public class DeliveryService {
 
         // 허브 간 배송 담당자 순차 배정
         // 배송 담당자 타입이 허브 배송 담당자이고 orderId 가 null 인 값 중에 sequence 가 가장 작은 값 (isDeleteIsFalse)
-        DeliveryManager hubDeliveryManager = deliveryManagerRepository.
-                findFirstByTypeAndOrderIdIsNullAndIsDeleteFalseOrderBySequenceAsc(DeliveryManagerType.HUB_DELIVERY_MANAGER)
+        DeliveryManager hubDeliveryManager = deliveryManagerRepository
+                .findAvailableHubDeliveryManager()
                 .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 배송 담당자가 없습니다."));
         deliveryManagerService.updateOrderId(hubDeliveryManager, delivery.getOrderId());
 
@@ -110,7 +112,7 @@ public class DeliveryService {
         UUID arrivalId = delivery.getArrivalId();
 
         // 권한 확인
-        checkRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "수정");
+        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "수정");
 
         // 수령 업체 담당자 업데이트
         Long receiverId = request.getReceiverId() != null ? request.getReceiverId() : delivery.getReceiverId();
@@ -134,6 +136,22 @@ public class DeliveryService {
             deliveryRouteService.updateRouteStatus(deliveryId, deliveryStatus);
         }
 
+        // 배송 담당자 업데이트
+        DeliveryManager currentManager = delivery.getDeliveryManager();
+        if (currentManager != null) {
+            // 기존 담당자의 orderId 초기화
+            deliveryManagerService.updateOrderId(currentManager, null);
+        }
+        // 새로운 배송 담당자 조회
+        // 배송 담당자는 한 번에 하나의 배송(주문) 만 처리
+        DeliveryManager newManager = deliveryManagerRepository.findByIdAndIsDeleteFalse(request.getDeliveryManagerId())
+                .orElseThrow(() -> new IllegalArgumentException("지정된 새로운 배송 담당자를 찾을 수 없습니다."));
+        if (newManager.getOrderId() != null) {
+            throw new IllegalArgumentException("이미 배송이 지정되어 있는 담당자입니다.");
+        }
+        // 새로운 담당자에게 orderId 배정
+        deliveryManagerService.updateOrderId(newManager, delivery.getOrderId());
+
         // 배송 정보 업데이트
         delivery.update(receiverId, receiverSlackId, deliveryStatus);
         delivery.setUpdatedBy(username);
@@ -150,7 +168,7 @@ public class DeliveryService {
 
 
         // 권한 확인
-        checkRole(role, userId, username, departureId, arrivalId, null, "삭제");
+        checkRole.validateRole(role, userId, username, departureId, arrivalId, null, "삭제");
 
         delivery.delete(username);
     }
@@ -165,7 +183,7 @@ public class DeliveryService {
         UUID arrivalId = delivery.getArrivalId();
 
         // 권한 확인
-        checkRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
+        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
 
         return DeliveryDto.create(delivery);
     }
@@ -187,8 +205,8 @@ public class DeliveryService {
                 if (departureId == null && arrivalId == null) {
                     throw new AccessDeniedException("출발/도착 허브 ID 가 필요합니다.");
                 }
-                if (!isHubManager(userId, username, role, departureId) &&
-                        !isHubManager(userId, username, role, arrivalId)) {
+                if (!checkRole.isHubManager(userId, username, role, departureId) &&
+                        !checkRole.isHubManager(userId, username, role, arrivalId)) {
                     throw new AccessDeniedException("해당 허브의 배송 정보를 조회할 권한이 없습니다.");
                 }
                 break;
@@ -205,52 +223,5 @@ public class DeliveryService {
         return deliveryRepository.searchDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
                 receiverId, createdFrom, createdTo, pageable);
     }
-
-    private void checkRole(String role, String userId, String username, UUID departureId, UUID arrivalId, Long deliveryManagerId, String action) throws AccessDeniedException {
-        switch (role) {
-            case "MASTER":
-                // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                break;
-
-            case "HUB_MANAGER":
-                if ("수정".equals(action) || "삭제".equals(action) || "조회".equals(action)) {
-                    // 출발 허브와 도착 허브 권한 확인
-                    if (!isHubManager(userId, username, role, departureId) &&
-                            !isHubManager(userId, username, role, arrivalId)) {
-                        throw new AccessDeniedException(String.format("해당 배송 정보를 %s할 권한이 없습니다.", action));
-                    }
-                } else {
-                    throw new AccessDeniedException("허브 관리자는 배송을 생성할 수 없습니다.");
-                }
-                break;
-
-            case "DELIVERY_MANAGER":
-                if ("수정".equals(action) || "조회".equals(action)) {
-                    if (!Long.valueOf(userId).equals(deliveryManagerId)) {
-                        throw new AccessDeniedException(String.format("본인의 배송 정보만 %s할 수 있습니다.", action));
-                    }
-                } else {
-                    throw new AccessDeniedException(String.format("배송 담당자는 배송 정보를 %s할 권한이 없습니다.", action));
-                }
-                break;
-
-            case "COMPANY_MANAGER":
-                if ("조회".equals(action)) {
-                    break; // 업체 담당자는 조회만 가능
-                }
-                throw new AccessDeniedException(String.format("업체 담당자는 배송 정보를 %s할 수 없습니다.", action));
-
-            default:
-                throw new IllegalArgumentException("유효하지 않은 권한입니다.");
-        }
-    }
-
-    private boolean isHubManager(String userId, String username, String role, UUID hubId) {
-        if (hubId == null) return false;
-
-        HubDto hub = hubClient.getHubById(hubId, userId, username, role).getBody().getData();
-        return Long.valueOf(userId).equals(hub.getHubManagerId());
-    }
-
 
 }

@@ -3,6 +3,7 @@ package com.msa_delivery.delivery.infrastructure.repository;
 import com.msa_delivery.delivery.application.dto.DeliveryManagerDto;
 import com.msa_delivery.delivery.domain.model.DeliveryManager;
 import com.msa_delivery.delivery.domain.model.DeliveryManagerType;
+import com.msa_delivery.delivery.domain.model.QDeliveryManager;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,7 +29,7 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<DeliveryManagerDto> searchManagers(String search, String type, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
+    public Page<DeliveryManagerDto> searchManagers(String search, String type, Long deliveryManagerId, UUID hubId, UUID orderId, Integer sequenceMin, Integer sequenceMax,
                                                    String createdFrom, String createdTo, Pageable pageable) {
         // 동적 정렬
         List<OrderSpecifier<?>> orderSpecifier = buildOrderSpecifier(pageable);
@@ -36,6 +38,7 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
         QueryResults<DeliveryManager> results = queryFactory.selectFrom(deliveryManager)
                 .where(nameContains(search),
                         eqType(type),
+                        eqManagerId(deliveryManagerId),
                         eqHubId(hubId),
                         eqOrderId(orderId),
                         sequenceBetween(sequenceMin, sequenceMax),
@@ -68,12 +71,17 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
         return type != null ? deliveryManager.type.eq(DeliveryManagerType.fromString(type)) : null;
     }
 
+    // 담당자 ID 조건
+    private BooleanExpression eqManagerId(Long deliveryManagerId) {
+        return deliveryManagerId != null ? deliveryManager.id.eq(deliveryManagerId) : null;
+    }
+
     // 허브 ID 조건
     private BooleanExpression eqHubId(UUID hubId) {
         return hubId != null ? deliveryManager.hubId.eq(hubId) : null;
     }
 
-    // 허브 ID 조건
+    // 주문 ID 조건
     private BooleanExpression eqOrderId(UUID orderId) {
         return orderId != null ? deliveryManager.orderId.eq(orderId) : null;
     }
@@ -140,5 +148,38 @@ public class JpaDeliveryManagerRepositoryImpl implements JpaDeliveryManagerRepos
             }
         }
         return orders;
+    }
+
+    @Override
+    public Optional<DeliveryManager> findAvailableDeliveryManager(DeliveryManagerType type, UUID hubId) {
+        QDeliveryManager deliveryManager = QDeliveryManager.deliveryManager;
+
+        DeliveryManager result = queryFactory.selectFrom(deliveryManager)
+                .where(
+                        deliveryManager.type.eq(type),
+                        deliveryManager.orderId.isNull(),
+                        deliveryManager.isDelete.isFalse(),
+                        deliveryManager.hubId.eq(hubId)
+                )
+                .orderBy(deliveryManager.sequence.asc())
+                .fetchFirst();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public Optional<DeliveryManager> findAvailableHubDeliveryManager() {
+        QDeliveryManager deliveryManager = QDeliveryManager.deliveryManager;
+
+        DeliveryManager result = queryFactory.selectFrom(deliveryManager)
+                .where(
+                        deliveryManager.type.eq(DeliveryManagerType.HUB_DELIVERY_MANAGER),
+                        deliveryManager.orderId.isNull(),
+                        deliveryManager.isDelete.isFalse()
+                )
+                .orderBy(deliveryManager.sequence.asc())
+                .fetchFirst();
+
+        return Optional.ofNullable(result);
     }
 }

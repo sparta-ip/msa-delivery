@@ -93,7 +93,7 @@ public class DeliveryController {
                                              @RequestHeader("X-Username") String username,
                                              @RequestHeader("X-Role") String role) {
         try {
-            DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, role);
+            DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, username, role);
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", delivery)
             );
@@ -125,7 +125,7 @@ public class DeliveryController {
         try {
             Page<DeliveryDto> deliveries =
                     deliveryService.getDeliveries(search, deliveryStatus, departureId, arrivalId, deliveryManagerId,
-                            receiverId, createdFrom, createdTo, userId, role, pageable);
+                            receiverId, createdFrom, createdTo, userId, username, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveries)

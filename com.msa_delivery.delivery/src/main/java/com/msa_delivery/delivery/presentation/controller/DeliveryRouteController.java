@@ -70,7 +70,7 @@ public class DeliveryRouteController {
                                           @RequestHeader("X-Username") String username,
                                           @RequestHeader("X-Role") String role) {
         try {
-            DeliveryRouteDto route = deliveryRouteService.getRouteById(deliveryRouteId, userId, role);
+            DeliveryRouteDto route = deliveryRouteService.getRouteById(deliveryRouteId, userId, username, role);
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", route)
             );
@@ -100,7 +100,7 @@ public class DeliveryRouteController {
         try {
             Page<DeliveryRouteDto> deliveryRoutes =
                     deliveryRouteService.getRoutes(deliveryStatus, departureId, arrivalId, deliveryManagerId,
-                            createdFrom, createdTo, userId, role, pageable);
+                            createdFrom, createdTo, userId, username, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveryRoutes)

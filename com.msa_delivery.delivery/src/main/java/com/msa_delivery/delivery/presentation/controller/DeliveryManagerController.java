@@ -92,7 +92,7 @@ public class DeliveryManagerController {
                                             @RequestHeader("X-Username") String username,
                                             @RequestHeader("X-Role") String role) {
         try {
-            DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, role);
+            DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, username, role);
             return ResponseEntity.status(HttpStatus.OK).body(
                     CommonResponse.success(HttpStatus.OK, "배송 담당자 상세 조회가 완료되었습니다.", manager)
             );
@@ -111,6 +111,7 @@ public class DeliveryManagerController {
     public ResponseEntity<?> getManagers(
             @RequestParam(value = "search", required = false) String search, // 배송 담당자 타입
             @RequestParam(value = "type", required = false) String type, // 배송 담당자 타입
+            @RequestParam(value = "delivery_manager_id", required = false) Long deliveryManagerId, // 허브 ID
             @RequestParam(value = "hub_id", required = false) UUID hubId, // 허브 ID
             @RequestParam(value = "order_id", required = false) UUID orderId, // 허브 ID
             @RequestParam(value = "sequence_min", required = false) Integer sequenceMin, // 최소 순번
@@ -123,7 +124,7 @@ public class DeliveryManagerController {
             Pageable pageable) {
         try {
             Page<DeliveryManagerDto> managers =
-                    deliveryManagerService.getManagers(search, type, hubId, orderId, sequenceMin, sequenceMax,
+                    deliveryManagerService.getManagers(search, type, deliveryManagerId, hubId, orderId, sequenceMin, sequenceMax,
                             createdFrom, createdTo, userId, role, pageable);
 
             return ResponseEntity.status(HttpStatus.OK).body(

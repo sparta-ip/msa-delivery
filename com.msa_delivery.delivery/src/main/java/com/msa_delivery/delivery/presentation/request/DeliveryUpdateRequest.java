@@ -12,6 +12,9 @@ public class DeliveryUpdateRequest {
     @JsonProperty("receiver_id")
     private Long receiverId;
 
+    @JsonProperty("delivery_manager_id")
+    private Long deliveryManagerId;
+
     @JsonProperty("delivery_status")
     private String deliveryStatus;
 }
