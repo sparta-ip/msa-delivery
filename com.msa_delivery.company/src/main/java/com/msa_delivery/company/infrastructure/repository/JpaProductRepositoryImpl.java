@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import static com.msa_delivery.company.domain.model.QProduct.product;
 
 @RequiredArgsConstructor
-public class ProductRepositoryImpl implements JpaProductRepository {
+public class JpaProductRepositoryImpl implements JpaProductRepository {
 
     private final JPAQueryFactory queryFactory;
 

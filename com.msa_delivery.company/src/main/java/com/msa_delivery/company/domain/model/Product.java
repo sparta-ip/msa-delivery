@@ -17,16 +17,20 @@ public class Product extends BaseEntity{
     @Column(name = "product_id")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
+    @Column(nullable = false)
     private UUID hubId;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private Integer price;
 
+    @Column(nullable = false)
     private Integer quantity;
 
     public static Product create(Company company, UUID hubId, String name, Integer price, Integer quantity) {
