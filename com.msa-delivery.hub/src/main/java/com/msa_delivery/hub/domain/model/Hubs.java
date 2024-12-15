@@ -52,8 +52,8 @@ public class Hubs {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public void updateHubData(CreateHubReqDto reqDto, String address, Location location) {
-        this.name = reqDto.getHub().getName();
+    public void updateHubData(String name, String address, Location location) {
+        this.name = name;
         this.address = address;
         this.location = location;
     }
