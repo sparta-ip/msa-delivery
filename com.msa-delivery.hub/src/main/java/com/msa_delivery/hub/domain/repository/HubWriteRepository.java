@@ -1,6 +1,7 @@
 package com.msa_delivery.hub.domain.repository;
 
 
+import com.msa_delivery.hub.domain.model.HubRoute;
 import com.msa_delivery.hub.domain.model.Hubs;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -15,8 +16,7 @@ import java.util.UUID;
 @Repository
 public interface HubWriteRepository extends JpaRepository<Hubs, UUID> {
 
-//    List<Hubs> saveAll(List<Hubs> hubs);
-//    Hubs save(Hubs hubs);
+
     @Modifying
     @Query("UPDATE Hubs h SET h.deletedAt = :deletedAt, h.isDeleted = true, h.deletedBy = :deletedBy WHERE h.hubId = :hubId")
     void updateHubToDeleted(@Param("hubId") UUID hubId, @Param("deletedAt") LocalDateTime deletedAt, @Param("deletedBy") Long deletedBy);
