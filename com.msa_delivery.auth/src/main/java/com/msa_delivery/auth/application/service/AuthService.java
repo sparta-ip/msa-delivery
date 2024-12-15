@@ -53,7 +53,7 @@ public class AuthService {
 
     @CircuitBreaker(name = "signUpCircuitBreaker", fallbackMethod = "fallbackSignUp")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signUp(AuthRequestDto userRequestDto) {
+    public ResponseEntity<ApiResponseDto<?>> signUp(AuthRequestDto userRequestDto) {
         if (userRepository.existsByUsername(userRequestDto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -71,7 +71,7 @@ public class AuthService {
 
     @CircuitBreaker(name = "signInCircuitBreaker", fallbackMethod = "fallbackSignIn")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(AuthRequestDto authRequestDto) {
+    public ResponseEntity<ApiResponseDto<?>> signIn(AuthRequestDto authRequestDto) {
         User user = userRepository.findByUsername(authRequestDto.getUsername()).orElseThrow(()
                 -> new IllegalArgumentException("Please check username or password"));
 
@@ -121,7 +121,7 @@ public class AuthService {
                 .compact();
     }
 
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<?>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -130,7 +130,7 @@ public class AuthService {
                 .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<?>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;

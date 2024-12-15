@@ -21,10 +21,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.epages.restdocs.apispec.ResourceDocumentation.headerWithName;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 
 /**
- * 테스트 전에는 eureka 서버와 gateway 서버가 실행 된 상태여야 합니다.
+ * TODO : 테스트 전에는 eureka 서버와 gateway 서버가 실행 된 상태여야 합니다.
  * 반드시 위 2개의 서버가 실행된 상태인지 확인해주세요.
  */
 @SpringBootTest
@@ -83,11 +84,18 @@ class AuthControllerApiTest {
                                                         fieldWithPath("role").type(JsonFieldType.STRING).description("유저 역할(MASTER, HUB_MANAGER, DELIVERY_MANAGER, COMPANY_MANAGER)"),
                                                         fieldWithPath("slack_id").type(JsonFieldType.STRING).description("슬랙 아이디")
                                                 )
+                                                .responseFields(
+                                                        fieldWithPath("status").type(JsonFieldType.NUMBER).description("응답 상태 코드"),
+                                                        fieldWithPath("message").type(JsonFieldType.STRING).description("응답 메시지"),
+                                                        fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+                                                        fieldWithPath("data.username").type(JsonFieldType.STRING).description("유저명"),
+                                                        fieldWithPath("data.role").type(JsonFieldType.STRING).description("유저 역할"),
+                                                        fieldWithPath("data.slack_id").type(JsonFieldType.STRING).description("슬랙 아이디")
+                                                )
                                                 .build()
                                 )
                         )
-                )
-        ;
+                );
     }
 
     @Test
@@ -129,14 +137,16 @@ class AuthControllerApiTest {
                                                                 
                                                                 - 로그인에 필요한 정보들을 json 형식으로 입력해주세요.
                                                                 """)
+                                                .responseHeaders(
+                                                        headerWithName("Authorization").description("JWT 토큰")
+                                                )
                                                 .requestFields(
-                                                        fieldWithPath("username").type(JsonFieldType.STRING).description("유저명(최소 4자 이상, 10자 이하이며 알파벳 소문자(a~z), 숫자(0~9))"),
-                                                        fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호(최소 8자 이상, 15자 이하이며 알파벳 대소문자(a~z, A~Z), 숫자(0~9), 특수문자)")
+                                                        fieldWithPath("status").type(JsonFieldType.NUMBER).description("응답 상태 코드"),
+                                                        fieldWithPath("message").type(JsonFieldType.STRING).description("응답 메시지")
                                                 )
                                                 .build()
                                 )
                         )
-                )
-        ;
+                );
     }
 }
