@@ -28,4 +28,7 @@ public class AuthRequestDto {
 
     @JsonProperty("slack_id")
     private String slackId;
+
+    @JsonProperty("master_key")
+    private String masterKey;
 }
