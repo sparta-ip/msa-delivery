@@ -1,18 +1,20 @@
 package com.msa_delivery.hub.domain.service;
 
 
-import com.msa_delivery.hub.application.dto.request.CreateHubReqDto;
 import com.msa_delivery.hub.domain.model.Hubs;
 import com.msa_delivery.hub.domain.model.Location;
 import com.msa_delivery.hub.domain.port.GeoCodingPort;
+import com.msa_delivery.hub.domain.repository.HubRepositoryCustom;
 import com.msa_delivery.hub.domain.repository.HubWriteRepository;
 import com.msa_delivery.hub.domain.repository.HubReadRepository;
-import com.msa_delivery.hub.presentation.response.HubRes;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,14 +24,23 @@ public class HubDomainServiceImpl implements HubDomainService {
     private final HubReadRepository hubReadRepository;
     private final GeoCodingPort geoCodingPort;
     private final HubWriteRepository hubWriteRepository;
+    private final HubRepositoryCustom hubRepositoryCustom;
+    @Override
+    public Hubs createHubs(String name, String address, Long userId) {
 
-    @Transactional
-    public HubRes createHubs(CreateHubReqDto reqDto) {
-        verifyDuplicatedHub(reqDto.getHub().getName());
-        Hubs hub = reqDto.toEntity("master", geoCodingPort.getGeocode(reqDto.getHub().getAddress()));
-        Hubs savedHub = hubWriteRepository.save(hub);
-        return HubRes.from(savedHub);
+        verifyDuplicatedHub(name);
+
+        Location location = geoCodingPort.getGeocode(address);
+        Hubs hub = Hubs.builder()
+                .name(name)
+                .address(address)
+                .location(location)
+                .createdBy(String.valueOf(userId))
+                .createdAt(LocalDateTime.now())
+                .build();
+        return  hubWriteRepository.save(hub);
     }
+
 
     @Override
     public void verifyDuplicatedHub(String name) {
@@ -37,25 +48,40 @@ public class HubDomainServiceImpl implements HubDomainService {
             throw new IllegalArgumentException("이미 존재하는 허브 입니다.");
         }
     }
-    @Transactional
+
     @Override
-    public HubRes updateHubs(UUID hubId, CreateHubReqDto reqDto) {
+    public Hubs updateHub(UUID hubId, String name, String address, Long userId) {
         return hubReadRepository.findByHubId(hubId).map(hubs -> {
-            if (!hubs.getAddress().equals(reqDto.getHub().getAddress())) {
-                Location newLocation = geoCodingPort.getGeocode(reqDto.getHub().getAddress());
-                hubs.updateHubData(reqDto, reqDto.getHub().getAddress(), newLocation);
-                return HubRes.from(hubs);
+            if (!hubs.getAddress().equals(address)) {
+                Location newLocation = geoCodingPort.getGeocode(address);
+                hubs.updateHubData(name, address, newLocation);
+                return hubs;
             } else {
                 throw new IllegalArgumentException("현재 주소와 동일한 주소 입니다.");
             }
         }).orElseThrow(() -> new IllegalArgumentException("해당 주소의 허브를 찾을 수 없습니다."));
     }
-    @Transactional
+
+
+
     @Override
     public void deleteHubs(UUID hubId, Long userId) {
-        Hubs hubs = hubReadRepository.findByHubId(hubId).orElseThrow(() -> new IllegalArgumentException("허브를 찾을 수 없습니다."));
+        hubReadRepository.findByHubId(hubId).orElseThrow(() -> new IllegalArgumentException("허브를 찾을 수 없습니다."));
         LocalDateTime localDateTime = LocalDateTime.now();
         hubWriteRepository.updateHubToDeleted(hubId, localDateTime, userId);
     }
 
+    @Override
+    public List<Hubs> getHubAll() {
+        return hubReadRepository.findAll();
+    }
+
+    @Override
+    public List<Hubs> getHubByIsDeletedFalse(UUID hubId) {
+        return hubReadRepository.findAllByIsDeletedFalseAndHubIdNot(hubId);
+    }
+    @Override
+    public Page<Hubs> searchHubs(UUID hubId,String name, String address, Long hubManagerId, Boolean isDeleted, Pageable pageable) {
+        return hubRepositoryCustom.searchHubs(hubId ,name, address, hubManagerId, isDeleted, pageable);
+    }
 }
