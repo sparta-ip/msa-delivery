@@ -1,8 +1,12 @@
 package com.msa_delivery.hub.infrastrcture.configuration;
 
 
+import com.msa_delivery.hub.domain.model.HubRoute;
 import com.msa_delivery.hub.domain.model.Hubs;
 import com.msa_delivery.hub.domain.model.Location;
+import com.msa_delivery.hub.domain.model.RouteInfo;
+import com.msa_delivery.hub.domain.port.NavigationPort;
+import com.msa_delivery.hub.domain.repository.HubRouteRepository;
 import com.msa_delivery.hub.domain.repository.HubWriteRepository;
 import com.msa_delivery.hub.infrastrcture.kakao.KaKaoMapClient;
 import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
@@ -11,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,7 +25,9 @@ public class HubDataInitializer {
 
 
 //    private final HubWriteRepository hubWriteRepository;
+//    private final HubRouteRepository hubRouteRepository;
 //    private final KaKaoMapClient kaKaoMapClient;
+//    private final NavigationPort navigationPort;
 //
 //    @PostConstruct
 //    public void initHubs() {
@@ -43,8 +50,37 @@ public class HubDataInitializer {
 //                createHubWithLocation("경상북도 센터", "경북 안동시 풍천면 도청대로 455"),
 //                createHubWithLocation("경상남도 센터", "경남 창원시 의창구 중앙대로 300")
 //        );
-//        hubWriteRepository.saveAll(hubs);
+//        List<Hubs> savedHubs = hubWriteRepository.saveAll(hubs);
+//
+//
+//        List<HubRoute> routes = new ArrayList<>();
+//        for (int i = 0; i < savedHubs.size(); i++) {
+//            Hubs originHub = savedHubs.get(i);
+//            for (int j = i + 1; j < savedHubs.size(); j++) {
+//                Hubs destHub = savedHubs.get(j);
+//
+//                RouteInfo routeInfo = navigationPort.calculateRouteInfo(
+//                        originHub.getLocation(),
+//                        destHub.getLocation()
+//                );
+//
+//                HubRoute route = HubRoute.builder()
+//
+//                        .departureHub(originHub)
+//                        .arrivalHub(destHub)
+//                        .distance(routeInfo.distance())
+//                        .duration(routeInfo.duration())
+//                        .createdAt(LocalDateTime.now())
+//                        .createdBy(1L)
+//                        .isDeleted(false)
+//                        .build();
+//
+//                routes.add(route);
+//            }
+//        }
+//        hubRouteRepository.saveAll(routes);
 //    }
+//
 //
 //    private Hubs createHubWithLocation(String name, String address) {
 //        Location location = null;
