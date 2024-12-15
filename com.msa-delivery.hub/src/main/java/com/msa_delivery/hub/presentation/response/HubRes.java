@@ -5,19 +5,12 @@ import com.msa_delivery.hub.domain.model.Location;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Getter
+
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class HubRes {
-    private UUID hubId;
-    private String hubName;
-    private String address;
-    private Location location;
+public record HubRes(UUID hubId, String hubName, String address, Location location) {
 
 
     public static HubRes from(Hubs hubs) {
