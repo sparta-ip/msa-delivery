@@ -1,7 +1,8 @@
-package com.msa_delivery.hub.infrastrcture.kakao;
+package com.msa_delivery.hub.infrastrcture.kakao.adapter;
 
 import com.msa_delivery.hub.domain.model.Location;
 import com.msa_delivery.hub.domain.port.GeoCodingPort;
+import com.msa_delivery.hub.infrastrcture.kakao.KaKaoMapClient;
 import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,4 +20,5 @@ public class KakaoGeocodeAdapter implements GeoCodingPort {
         }
         return geoResponse.getDocuments().get(0).toLocation();
     }
+
 }
