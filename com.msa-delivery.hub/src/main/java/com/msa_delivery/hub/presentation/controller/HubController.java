@@ -1,10 +1,16 @@
 package com.msa_delivery.hub.presentation.controller;
 
 import com.msa_delivery.hub.application.dto.request.CreateHubReqDto;
+import com.msa_delivery.hub.application.dto.request.HubSearch;
 import com.msa_delivery.hub.application.service.HubApplicationService;
 import com.msa_delivery.hub.presentation.common.ApiResponse;
 import com.msa_delivery.hub.presentation.response.HubRes;
+import com.msa_delivery.hub.presentation.response.HubWithRoutesResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -18,19 +24,13 @@ public class HubController {
 
 
     @PostMapping
-    public ApiResponse<HubRes> createHub(@RequestBody CreateHubReqDto createHubReqDto) {
-        return ApiResponse.success(hubApplicationService.createHub(createHubReqDto));
-
-//        return ResponseEntity.ok(ApiResponse.<HubRes>builder()
-//                .status(200)
-//                .message("허브 생성이 완료되었습니다.")
-//                .data(hubApplicationService.createHub(createHubReqDto))
-//                .build());
+    public ApiResponse<HubWithRoutesResponse> createHub(@RequestBody CreateHubReqDto createHubReqDto, @RequestHeader(value = "X-userId", required = true)Long userId) {
+        return ApiResponse.success(hubApplicationService.createHubWithRoutes(createHubReqDto, userId));
     }
 
     @PatchMapping("/{hubId}")
-    public ApiResponse<HubRes> updateHub(@PathVariable UUID hubId, @RequestBody CreateHubReqDto createHubReqDto) {
-        return ApiResponse.success(hubApplicationService.updateHub(hubId ,createHubReqDto));
+    public ApiResponse<HubWithRoutesResponse> updateHub(@PathVariable UUID hubId, @RequestBody CreateHubReqDto createHubReqDto , @RequestHeader(value = "X-userId", required = true) Long userId)  {
+        return ApiResponse.success(hubApplicationService.updateHub(hubId ,createHubReqDto,userId));
     }
 
     @DeleteMapping("/{hubId}")
@@ -38,4 +38,12 @@ public class HubController {
         hubApplicationService.deleteHub(hubId, userId);
         return ApiResponse.success(userId + "허브 필드가 비활성화 되었습니다.");
     }
+    @GetMapping("/search")
+    public ApiResponse<Page<HubRes>> searchHubs(
+            @ModelAttribute HubSearch hubSearch,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ApiResponse.success(hubApplicationService.searchHubs(hubSearch, pageable));
+    }
 }
+
