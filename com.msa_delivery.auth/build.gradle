@@ -86,7 +86,7 @@ openapi3 {
 				url = 'http://localhost:19091'
 			}
 	]
-	title = 'USER API'
+	title = 'AUTH API'
 	description = ''
 	version = '1.0.0'
 	format = 'json'
