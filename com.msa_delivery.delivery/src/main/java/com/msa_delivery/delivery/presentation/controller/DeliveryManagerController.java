@@ -30,7 +30,7 @@ public class DeliveryManagerController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryManagerDto manager = deliveryManagerService.createManager(request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 담당자 생성이 완료되었습니다.", manager)
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 담당자 생성이 완료되었습니다.", manager)
         );
     }
 
@@ -42,7 +42,7 @@ public class DeliveryManagerController {
                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryManagerDto manager = deliveryManagerService.updateManager(deliveryManagerId, request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 담당자 정보 수정이 완료되었습니다.", manager)
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 담당자 정보 수정이 완료되었습니다.", manager)
         );
     }
 
@@ -53,7 +53,7 @@ public class DeliveryManagerController {
                                          @RequestHeader("X-Role") String role) throws AccessDeniedException {
         deliveryManagerService.deleteManager(deliveryManagerId, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 담당자 정보 삭제가 완료되었습니다.")
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 담당자 정보 삭제가 완료되었습니다.", null)
         );
     }
 
@@ -64,7 +64,7 @@ public class DeliveryManagerController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryManagerDto manager = deliveryManagerService.getManagerById(deliveryManagerId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "배송 담당자 상세 조회가 완료되었습니다.", manager)
+                CommonResponse.success(HttpStatus.OK.value(), "배송 담당자 상세 조회가 완료되었습니다.", manager)
         );
     }
 
@@ -88,7 +88,7 @@ public class DeliveryManagerController {
                         createdFrom, createdTo, userId, role, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", managers)
+                CommonResponse.success(HttpStatus.OK.value(), "검색 조회가 완료되었습니다.", managers)
         );
     }
 }

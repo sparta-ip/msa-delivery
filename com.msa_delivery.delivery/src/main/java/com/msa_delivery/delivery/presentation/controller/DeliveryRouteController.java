@@ -30,7 +30,7 @@ public class DeliveryRouteController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryRouteDto route = deliveryRouteService.updateRoute(deliveryRouteId, request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 경로 정보 수정이 완료되었습니다.", route)
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 경로 정보 수정이 완료되었습니다.", route)
         );
     }
 
@@ -41,7 +41,7 @@ public class DeliveryRouteController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         deliveryRouteService.deleteRoute(deliveryRouteId, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 경로 정보 삭제가 완료되었습니다.")
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 경로 정보 삭제가 완료되었습니다.", null)
         );
 
     }
@@ -53,7 +53,7 @@ public class DeliveryRouteController {
                                           @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryRouteDto route = deliveryRouteService.getRouteById(deliveryRouteId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", route)
+                CommonResponse.success(HttpStatus.OK.value(), "배송 상세 조회가 완료되었습니다.", route)
         );
     }
 
@@ -74,7 +74,7 @@ public class DeliveryRouteController {
                         createdFrom, createdTo, userId, username, role, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveryRoutes)
+                CommonResponse.success(HttpStatus.OK.value(), "검색 조회가 완료되었습니다.", deliveryRoutes)
         );
     }
 

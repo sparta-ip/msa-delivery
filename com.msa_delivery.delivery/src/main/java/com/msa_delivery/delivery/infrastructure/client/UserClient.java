@@ -1,6 +1,6 @@
 package com.msa_delivery.delivery.infrastructure.client;
 
-import com.msa_delivery.delivery.application.dto.ApiResponseDto;
+import com.msa_delivery.delivery.application.dto.CommonResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface UserClient {
 
     @GetMapping("/api/users/{userId}")
-    ResponseEntity<ApiResponseDto<UserDto>> getUserById(
+    ResponseEntity<CommonResponse<UserDto>> getUserById(
             @PathVariable("userId") Long userId,
             @RequestHeader("X-User_Id") String headerUserId,
             @RequestHeader("X-Username") String username,

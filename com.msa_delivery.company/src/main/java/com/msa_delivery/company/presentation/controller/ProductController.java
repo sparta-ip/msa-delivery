@@ -30,7 +30,7 @@ public class ProductController {
                                           @RequestHeader("X-Role") String role) throws AccessDeniedException {
         ProductDto product = productService.createProduct(request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "상품 생성이 완료되었습니다.", product)
+                CommonResponse.success(HttpStatus.CREATED.value(), "상품 생성이 완료되었습니다.", product)
         );
     }
 
@@ -42,7 +42,7 @@ public class ProductController {
                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
         ProductDto product = productService.updateProduct(productId, request, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "상품 수정이 완료되었습니다.", product)
+                CommonResponse.success(HttpStatus.OK.value(), "상품 수정이 완료되었습니다.", product)
         );
     }
 
@@ -53,7 +53,7 @@ public class ProductController {
                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
         productService.deleteProduct(productId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "상품 삭제가 완료되었습니다.")
+                CommonResponse.success(HttpStatus.OK.value(), "상품 삭제가 완료되었습니다.", null)
         );
     }
 
@@ -64,7 +64,7 @@ public class ProductController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         ProductDto product = productService.getProductById(productId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "상품 상세 조회가 완료되었습니다.", product)
+                CommonResponse.success(HttpStatus.OK.value(), "상품 상세 조회가 완료되었습니다.", product)
         );
     }
 
@@ -84,7 +84,7 @@ public class ProductController {
                 productService.getProducts(search, hubId, minPrice, maxPrice, minQuantity, maxQuantity, userId, username, role, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", products)
+                CommonResponse.success(HttpStatus.OK.value(), "검색 조회가 완료되었습니다.", products)
         );
     }
 

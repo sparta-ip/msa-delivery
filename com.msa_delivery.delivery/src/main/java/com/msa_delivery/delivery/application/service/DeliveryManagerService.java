@@ -34,6 +34,7 @@ public class DeliveryManagerService {
     @Transactional
     public DeliveryManagerDto createManager(DeliveryManagerRequest request, String userId, String username, String role) throws AccessDeniedException {
         log.info("Service createManager :: ");
+        log.info("Request :: " + request.getUserId());
         // 배송 담당자 타입
         DeliveryManagerType type = DeliveryManagerType.fromString(request.getType());
         UUID hubId = request.getHubId();
