@@ -1,4 +1,4 @@
-package com.msa_delivery.hub.infrastrcture.kakao.response;
+package com.msa_delivery.hub.infrastructure.kakao.response;
 
 import com.msa_delivery.hub.domain.model.Location;
 import lombok.Getter;
@@ -16,7 +16,7 @@ public class KaKaoGeoResponse {
         private double x;
 
         public Location toLocation() {
-            return new Location(this.x, this.y);
+            return new Location(this.y, this.x);
         }
     }
 }
