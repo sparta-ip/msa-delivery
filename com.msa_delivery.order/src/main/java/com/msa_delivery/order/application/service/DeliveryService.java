@@ -11,9 +11,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeliveryService {
@@ -30,8 +33,12 @@ public class DeliveryService {
             supplierData.getHub_id(),
             receiverData.getAddress()
         );
-        ResponseDto<DeliveryResponseDto> response = deliveryClient.createDelivery(requestDto);
-        return response.getData();
+        log.info("배송 요청 dto 생성");
+
+        ResponseEntity<ResponseDto<DeliveryResponseDto>> response = deliveryClient.createDelivery(requestDto);
+
+        log.info("배송 요청 dto 확인 : " + response.toString());
+        return response.getBody().getData();
     }
 
     // 특정 주문에 해당하는 배송 담당자 ID 목록 조회

@@ -14,72 +14,72 @@ public class DeliveryResponseDto {
     @Data
     public static class DeliveryDto {
 
-        @JsonProperty("deliveryId")
+//        @JsonProperty("deliveryId")
         private UUID delivery_id;
 
-        @JsonProperty("orderId")
+//        @JsonProperty("orderId")
         private UUID order_id;
 
-        @JsonProperty("deliveryManagerId")
+//        @JsonProperty("deliveryManagerId")
         private UUID delivery_manager_id;
 
-        @JsonProperty("receiverId")
+//        @JsonProperty("receiverId")
         private Long receiver_id;
 
-        @JsonProperty("receiverSlackId")
+//        @JsonProperty("receiverSlackId")
         private String receiver_slack_id;
 
-        @JsonProperty("departureId")
+//        @JsonProperty("departureId")
         private UUID departure_id;
 
-        @JsonProperty("arrivalId")
+//        @JsonProperty("arrivalId")
         private UUID arrival_id;
 
         private String address;
 
-        @JsonProperty("deliveryStatus")
+//        @JsonProperty("deliveryStatus")
         private String delivery_status;
 
-        @JsonProperty("createdAt")
+//        @JsonProperty("createdAt")
         private LocalDateTime created_at;
 
-        @JsonProperty("createdBy")
+//        @JsonProperty("createdBy")
         private String created_by;
     }
 
     @Data
     public static class DeliveryRouteDto {
 
-        @JsonProperty("deliveryRouteId")
+//        @JsonProperty("deliveryRouteId")
         private UUID delivery_route_id;
 
-        @JsonProperty("deliveryId")
+//        @JsonProperty("deliveryId")
         private UUID delivery_id;
 
-        @JsonProperty("deliveryManagerId")
+//        @JsonProperty("deliveryManagerId")
         private Long delivery_manager_id;
 
         private Integer sequence;
 
-        @JsonProperty("departureId")
+//        @JsonProperty("departureId")
         private UUID departure_id;
 
-        @JsonProperty("arrivalId")
+//        @JsonProperty("arrivalId")
         private UUID arrival_id;
 
-        @JsonProperty("expectDistance")
+//        @JsonProperty("expectDistance")
         private Integer expect_distance;
 
-        @JsonProperty("expectDuration")
+//        @JsonProperty("expectDuration")
         private Integer  expect_duration;
 
-        @JsonProperty("deliveryStatus")
+//        @JsonProperty("deliveryStatus")
         private String delivery_status;
 
-        @JsonProperty("createdAt")
+//        @JsonProperty("createdAt")
         private LocalDateTime created_at;
 
-        @JsonProperty("createdBy")
+//        @JsonProperty("createdBy")
         private String created_by;
     }
 }

@@ -56,6 +56,8 @@ public class OrderService {
     public ResponseDto<OrderDataDto> createOrder(OrderRequestDto.Create orderRequestDto,
         String username) {
 
+        log.info("Request received in OrderService at /orders createOrder");
+
         try {
             // 상품 확인
             ProductDataDto productData = productService.getProduct(orderRequestDto.getProduct_id());
@@ -63,10 +65,14 @@ public class OrderService {
                 throw new ProductNotFoundException(
                     "Product not found for id: " + orderRequestDto.getProduct_id());
             }
+            log.info("상품 확인 : " + productData.toString());
+
             // 재고 확인
             if (productData.getQuantity() < orderRequestDto.getQuantity()) {
                 throw new OrderCreationException("Quantity exceeds maximum quantity");
             }
+
+            log.info("상품 재고 확인");
 
             // 업체 확인
             CompanyDataDto receiverData = companyService.getCompany(
@@ -77,6 +83,9 @@ public class OrderService {
                 throw new OrderCreationException("Receiver or Supplier not found.");
             }
 
+            log.info("업체 확인 (수령업체) : " + receiverData.toString());
+            log.info("업체 확인 (공급업체) : " + supplierData.toString());
+
             // 업체 허브 정보확인
             HubDataDto receiverHubData = hubService.getHub(receiverData.getHub_id());
             HubDataDto supplierHubData = hubService.getHub(supplierData.getHub_id());
@@ -84,10 +93,14 @@ public class OrderService {
                 throw new OrderCreationException("Receiver or Hub not found.");
             }
 
+            log.info("업체 허브 확인 (수령업체) : " + receiverHubData.toString());
+            log.info("업체 허브 확인 (공급업체) : " + supplierHubData.toString());
+
             // 재고 차감
             try {
                 productService.reduceProductQuantity(orderRequestDto.getProduct_id(),
                     orderRequestDto.getQuantity());
+                log.info("상품 재고 차감");
             } catch (Exception e) {
                 throw new OrderCreationException("재고 차감 중 오류가 발생했습니다.");
             }
@@ -97,9 +110,13 @@ public class OrderService {
                 Order order = Order.createOrder(orderRequestDto);
                 Order savedOrder = orderRepository.save(order);
 
+                log.info("주문 저장 완료");
+
                 // 배송 요청 및 AI 예측
                 DeliveryResponseDto deliveryResponseDto = deliveryService.createDelivery(savedOrder, receiverData, supplierData);
                 order.addDeliveryId(deliveryResponseDto.getDelivery().getDelivery_id());
+
+                log.info("배송 요청 및 AI 예측");
 
                 String finalDeliveryTime = geminiService.predictFinalDeliveryTime(savedOrder,
                     productData, receiverData, supplierHubData, receiverHubData);
@@ -108,6 +125,8 @@ public class OrderService {
                 // Slack 메시지 전송
                 sendSlackMessage(savedOrder,
                     productData, receiverData, supplierHubData, receiverHubData, finalDeliveryTime);
+
+                log.info("슬랙 메시지 전송");
 
                 // 응답 데이터 생성
                 OrderDataDto orderDataDto = new OrderDataDto(savedOrder);

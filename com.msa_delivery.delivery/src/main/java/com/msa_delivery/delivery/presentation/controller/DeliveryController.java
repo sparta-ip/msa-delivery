@@ -8,6 +8,7 @@ import com.msa_delivery.delivery.presentation.request.DeliveryRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/deliveries")
 @RequiredArgsConstructor
@@ -25,10 +27,11 @@ public class DeliveryController {
     private final DeliveryService deliveryService;
 
     @PostMapping
-    public ResponseEntity<?> createDelivery(@Valid @RequestBody DeliveryRequest request,
+    public ResponseEntity<?> createDelivery(@RequestBody DeliveryRequest request,
                                            @RequestHeader("X-User_Id") String userId,
                                            @RequestHeader("X-Username") String username,
                                            @RequestHeader("X-Role") String role) {
+        log.info("Received request to create delivery");
         DeliveryCreateDto delivery = deliveryService.createDelivery(request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 CommonResponse.success(HttpStatus.CREATED.value(), "배송 생성이 완료되었습니다.", delivery)

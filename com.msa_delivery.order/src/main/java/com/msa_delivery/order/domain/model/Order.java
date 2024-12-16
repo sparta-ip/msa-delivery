@@ -19,7 +19,7 @@ import org.hibernate.annotations.Where;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name= "p_orders", schema = "ORDER")
+@Table(name= "p_orders", schema = "\"order\"")
 @Where(clause = "is_deleted = false")
 public class Order extends BaseEntity {
 
