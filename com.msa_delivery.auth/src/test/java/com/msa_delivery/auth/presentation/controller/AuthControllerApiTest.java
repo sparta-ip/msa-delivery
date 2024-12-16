@@ -8,6 +8,7 @@ import com.msa_delivery.auth.application.dtos.AuthRequestDto;
 import com.msa_delivery.auth.domain.entity.UserRoleEnum;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +50,7 @@ class AuthControllerApiTest {
                 .password("aA123123!")
                 .role(UserRoleEnum.MASTER)
                 .slackId("slackMaster01")
+                .masterKey("9c56cc51d7e2f3b6d7f43f7c9c2e2a2f2e2b7e0a8b9a4e5c1a5b6d1c8f6c8f6e")
                 .build();
 
         String requestDtoToJson = objectMapper.writeValueAsString(authRequestDto);
@@ -82,7 +84,8 @@ class AuthControllerApiTest {
                                                         fieldWithPath("username").type(JsonFieldType.STRING).description("유저명(최소 4자 이상, 10자 이하이며 알파벳 소문자(a~z), 숫자(0~9))"),
                                                         fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호(최소 8자 이상, 15자 이하이며 알파벳 대소문자(a~z, A~Z), 숫자(0~9), 특수문자)"),
                                                         fieldWithPath("role").type(JsonFieldType.STRING).description("유저 역할(MASTER, HUB_MANAGER, DELIVERY_MANAGER, COMPANY_MANAGER)"),
-                                                        fieldWithPath("slack_id").type(JsonFieldType.STRING).description("슬랙 아이디")
+                                                        fieldWithPath("slack_id").type(JsonFieldType.STRING).description("슬랙 아이디"),
+                                                        fieldWithPath("master-key").type(JsonFieldType.STRING).description("MASTER 회원가입에 필요한 키")
                                                 )
                                                 .responseFields(
                                                         fieldWithPath("status").type(JsonFieldType.NUMBER).description("응답 상태 코드"),
