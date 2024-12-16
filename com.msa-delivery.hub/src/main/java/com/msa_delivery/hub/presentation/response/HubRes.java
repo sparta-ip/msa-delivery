@@ -6,19 +6,25 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
 @Builder
-public record HubRes(UUID hubId, String hubName, String address, Location location) {
+public record HubRes(UUID hubId, Long hubMangerId, String hubName, String address, Location location, LocalDateTime createdAt, String createdBy, LocalDateTime updatedAt, String updatedBy) {
 
 
     public static HubRes from(Hubs hubs) {
         return HubRes.builder()
                 .hubId(hubs.getHubId())
+                .hubMangerId(hubs.getHubManagerId())
                 .hubName(hubs.getName())
                 .address(hubs.getAddress())
                 .location(hubs.getLocation())
+                .createdAt(hubs.getCreatedAt())
+                .createdBy(hubs.getCreatedBy())
+                .updatedAt(hubs.getUpdatedAt())
+                .updatedBy(hubs.getUpdatedBy())
                 .build();
     }
 }

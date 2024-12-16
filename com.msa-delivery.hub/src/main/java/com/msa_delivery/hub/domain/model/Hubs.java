@@ -52,10 +52,11 @@ public class Hubs {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public void updateHubData(String name, String address, Location location, String username) {
+    public void updateHubData(String name, String address, Location location, String username , LocalDateTime updated) {
         this.name = name;
         this.address = address;
         this.location = location;
-        this.createdBy = username;
+        this.updatedAt = updated;
+        this.updatedBy = username;
     }
 }
