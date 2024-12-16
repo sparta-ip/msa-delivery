@@ -8,6 +8,7 @@ import com.msa_delivery.hub.domain.repository.HubRouteRepository;
 import com.msa_delivery.hub.domain.repository.HubRouteRepositoryCustom;
 import com.msa_delivery.hub.presentation.response.HubRouteResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -106,11 +107,20 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
         LocalDateTime now = LocalDateTime.now();
         hubRouteRepository.softDeleteByHubId(hubId, userId, now);
     }
+    @Override
+    public HubRoute findHubRouteByDepartureAndArrivalHubId(UUID departureHubId, UUID arrivalHubId) {
+        return hubRouteRepositoryCustom.findHubRouteByDepartureAndArrivalHubId(departureHubId, arrivalHubId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 허브 경로를 찾을 수 없습니다."));
+    }
+
     public Page<HubRoute> searchHubRoute(UUID hubRoutId, UUID departureHubId, UUID arrivalHubId, Boolean isDeleted, Pageable pageable) {
 
         return hubRouteRepositoryCustom.searchHubs(hubRoutId, arrivalHubId, departureHubId, isDeleted, pageable);
 
     }
+
+
+    @Cacheable(value = "hubRoute", key = "#hubRouteId")
     @Override
     public HubRoute getHubRouteById(UUID hubRouteId) {
         return hubRouteRepository.findById(hubRouteId)

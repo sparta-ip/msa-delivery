@@ -2,6 +2,7 @@ package com.msa_delivery.hub.application.service;
 
 
 import com.msa_delivery.hub.application.dto.request.HubRouteSearch;
+import com.msa_delivery.hub.domain.model.HubRoute;
 import com.msa_delivery.hub.presentation.response.HubRouteResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,4 +17,6 @@ public interface HubRouteApplicationService {
     Page<HubRouteResponse> searchHubRouteList(HubRouteSearch hubRouteSearch, Pageable pageable);
     HubRouteResponse getHubRouteById(UUID hubRouteId);
 
+
+    HubRoute findHubRouteByDepartureAndArrivalHubId(UUID departureHubId, UUID arrivalHubId);
 }

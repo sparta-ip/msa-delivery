@@ -32,15 +32,30 @@ public class HubRouteController {
         return ApiResponse.success(hubRouteApplicationService.getHubRouteById(hubRouteId));
     }
 
+    @GetMapping("/route")
+    public ApiResponse<HubRouteResponse> findHubRoute(
+            @RequestParam UUID departureId,
+            @RequestParam UUID arrivalId,
+            @RequestHeader(value = "X-User_Id", required = true) String userId,
+            @RequestHeader(value = "X-Username", required = true) String username,
+            @RequestHeader(value = "X-Role", required = true) String role
+    ) {
+        return ApiResponse.success(
+                HubRouteResponse.from(
+                        hubRouteApplicationService.findHubRouteByDepartureAndArrivalHubId(departureId, arrivalId)
+                )
+        );
+    }
+
     @GetMapping
     public ApiResponse<Page<HubRouteResponse>> searchHubs(
             @ModelAttribute HubRouteSearch hubRouteSearch,
-            @PathVariable UUID hubRouteId,
             @RequestHeader(value = "X-User_Id", required = true) String userId,
             @RequestHeader(value = "X-Username", required = true) String username,
             @RequestHeader(value = "X-Role", required = true) String role,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
+
         return ApiResponse.success(hubRouteApplicationService.searchHubRouteList(hubRouteSearch, pageable));
     }
 }

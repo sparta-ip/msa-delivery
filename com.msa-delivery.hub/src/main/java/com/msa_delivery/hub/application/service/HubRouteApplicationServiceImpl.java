@@ -36,7 +36,10 @@ public class HubRouteApplicationServiceImpl implements HubRouteApplicationServic
         );
         return hubRoutePage.map(HubRouteResponse::from);
     }
-
+    @Override
+    public HubRoute findHubRouteByDepartureAndArrivalHubId(UUID departureHubId, UUID arrivalHubId) {
+        return hubRouteDomainService.findHubRouteByDepartureAndArrivalHubId(departureHubId, arrivalHubId);
+    }
 
     @Override
     public HubRouteResponse getHubRouteById(UUID hubRouteId) {
