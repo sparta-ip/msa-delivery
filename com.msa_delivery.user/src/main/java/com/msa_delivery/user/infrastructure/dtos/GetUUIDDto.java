@@ -19,4 +19,7 @@ public class GetUUIDDto {
 
     @JsonProperty("company_id")
     private List<UUID> companyId;
+
+    @JsonProperty("delivery_manager_id")
+    private List<Long> deliveryManagerId;
 }

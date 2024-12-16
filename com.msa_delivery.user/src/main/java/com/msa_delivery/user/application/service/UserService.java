@@ -1,6 +1,9 @@
 package com.msa_delivery.user.application.service;
 
-import com.msa_delivery.user.application.dtos.*;
+import com.msa_delivery.user.application.dtos.ApiResponseDto;
+import com.msa_delivery.user.application.dtos.UserRequestDto;
+import com.msa_delivery.user.application.dtos.UserResponseDto;
+import com.msa_delivery.user.application.dtos.UserSearchDto;
 import com.msa_delivery.user.domain.entity.User;
 import com.msa_delivery.user.domain.entity.UserRoleEnum;
 import com.msa_delivery.user.domain.repository.UserRepository;
@@ -21,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -115,16 +117,28 @@ public class UserService {
                 -> new IllegalArgumentException("user not exist."));
 
         // delivery 삭제 요청
-        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryByUserId = deliveryService.getDeliveryByUserId(user.getUserId(), headerUserId, headerUsername, role);
-        ApiResponseDto<GetUUIDDto> body = deliveryByUserId.getBody();
+//        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryByUserId = deliveryService.getDeliveryByUserId(user.getUserId(), headerUserId, headerUsername, role);
+//        ApiResponseDto<GetUUIDDto> deliveryBody = deliveryByUserId.getBody();
+//
+//        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", deliveryBody);
+//
+//        if (Objects.requireNonNull(deliveryBody).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(deliveryBody).getData().getDeliveryId().isEmpty()) {
+//            for (UUID uuid : deliveryBody.getData().getDeliveryId()) {
+//                deliveryService.softDeleteDelivery(uuid);
+//            }
+//        }
+        // delivery manager 삭제 요청
+        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryManagerByUserId = deliveryService.getDeliveryManagerByUserId(user.getUserId(), headerUserId, headerUsername, role);
+        ApiResponseDto<GetUUIDDto> deliveryManagerBody = deliveryManagerByUserId.getBody();
 
-        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", body);
+        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", deliveryManagerBody);
 
-        if (Objects.requireNonNull(body).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(body).getData().getDeliveryId().isEmpty()) {
-            for (UUID uuid : body.getData().getDeliveryId()) {
-                deliveryService.softDeleteDelivery(uuid);
+        if (Objects.requireNonNull(deliveryManagerBody).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(deliveryManagerBody).getData().getDeliveryManagerId().isEmpty()) {
+            for (Long deliveryManager : deliveryManagerBody.getData().getDeliveryManagerId()) {
+                deliveryService.softDeleteDeliveryManager(deliveryManager);
             }
         }
+        // TODO : delivery yml 넣어주기~
 
         // company 삭제 요청
 

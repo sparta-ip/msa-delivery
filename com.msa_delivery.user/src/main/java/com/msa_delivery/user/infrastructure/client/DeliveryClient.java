@@ -20,4 +20,13 @@ public interface DeliveryClient extends DeliveryService {
 
     @DeleteMapping("/api/deliveries/{delivery_id}")
     ResponseEntity<ApiResponseDto<?>> softDeleteDelivery(@PathVariable(name = "delivery_id") UUID deliveryId);
+
+    @PostMapping("/api/deliveries/delivery-managers")
+    ResponseEntity<ApiResponseDto<GetUUIDDto>> getDeliveryManagerByUserId(@RequestParam(name = "delivery_manager_id") Long userId,
+                                                                          @RequestHeader(value = "X-User_Id", required = true) @NotBlank String headerUserId,
+                                                                          @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
+                                                                          @RequestHeader(value = "X-Role", required = true) @NotBlank String role);
+
+    @DeleteMapping("/api/deliveries/delivery-managers/{delivery_manager_id}")
+    ResponseEntity<ApiResponseDto<?>> softDeleteDeliveryManager(@PathVariable(name = "delivery_manager_id") Long deliveryManagerId);
 }
