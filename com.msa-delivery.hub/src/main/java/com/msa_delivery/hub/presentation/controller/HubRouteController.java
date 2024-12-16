@@ -13,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,14 +22,23 @@ public class HubRouteController {
 
     private final HubRouteApplicationService hubRouteApplicationService;
 
-    @PostMapping()
-    public ApiResponse<List<HubRouteResponse>> createHubRoute(@RequestHeader(value = "X-UserId", required = true) Long userId) {
-        return ApiResponse.success(hubRouteApplicationService.createHubRouteList(userId));
+    @GetMapping("/{hubRouteId}")
+    public ApiResponse<HubRouteResponse> getHubRouteById(
+            @PathVariable UUID hubRouteId,
+            @RequestHeader(value = "X-User_Id", required = true) String userId,
+            @RequestHeader(value = "X-Username", required = true) String username,
+            @RequestHeader(value = "X-Role", required = true) String role
+    ) {
+        return ApiResponse.success(hubRouteApplicationService.getHubRouteById(hubRouteId));
     }
 
-    @GetMapping("/search")
+    @GetMapping
     public ApiResponse<Page<HubRouteResponse>> searchHubs(
             @ModelAttribute HubRouteSearch hubRouteSearch,
+            @PathVariable UUID hubRouteId,
+            @RequestHeader(value = "X-User_Id", required = true) String userId,
+            @RequestHeader(value = "X-Username", required = true) String username,
+            @RequestHeader(value = "X-Role", required = true) String role,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return ApiResponse.success(hubRouteApplicationService.searchHubRouteList(hubRouteSearch, pageable));

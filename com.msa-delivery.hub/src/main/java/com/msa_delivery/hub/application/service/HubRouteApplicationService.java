@@ -7,10 +7,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.UUID;
 
 
 public interface HubRouteApplicationService {
 
-    List<HubRouteResponse> createHubRouteList(Long userId);
+    List<HubRouteResponse> createHubRouteList(String userId);
     Page<HubRouteResponse> searchHubRouteList(HubRouteSearch hubRouteSearch, Pageable pageable);
+    HubRouteResponse getHubRouteById(UUID hubRouteId);
+
 }

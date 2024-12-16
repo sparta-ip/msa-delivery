@@ -11,9 +11,10 @@ import java.util.UUID;
 
 public interface HubRouteDomainService {
 
-     List<HubRouteResponse> createHubRoute(Long userId);
-     void deleteRelatedRoutes(UUID hubId, Long userId);
-     List<HubRoute> generateRoutes(Hubs newHub, UUID hubId, Long userId);
-     List<HubRoute> updateRelatedRoutes(UUID hubId, Long userId);
+     HubRoute getHubRouteById(UUID hubRouteId);
+     List<HubRouteResponse> createHubRoute(String userId);
+     void deleteRelatedRoutes(UUID hubId, String userId);
+     List<HubRoute> generateRoutes(Hubs newHub, UUID hubId, String userId);
+     List<HubRoute> updateRelatedRoutes(UUID hubId, String userId);
      Page<HubRoute> searchHubRoute(UUID hubRoutId, UUID departureHubId, UUID arrivalHubId, Boolean isDeleted, Pageable pageable);
 }
