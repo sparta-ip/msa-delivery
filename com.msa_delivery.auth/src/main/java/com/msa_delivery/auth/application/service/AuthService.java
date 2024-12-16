@@ -4,6 +4,7 @@ import com.msa_delivery.auth.application.dtos.ApiResponseDto;
 import com.msa_delivery.auth.application.dtos.AuthRequestDto;
 import com.msa_delivery.auth.application.dtos.AuthResponseDto;
 import com.msa_delivery.auth.domain.entity.User;
+import com.msa_delivery.auth.domain.entity.UserRoleEnum;
 import com.msa_delivery.auth.domain.repository.UserRepository;
 import com.msa_delivery.auth.infrastructure.dtos.VerifyUserDto;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -43,6 +44,9 @@ public class AuthService {
     @Value("${service.jwt.access-expiration}")
     private Long accessExpiration;
 
+    @Value("${security.master-key}")
+    private String masterKey;
+
     private static final String KEY_ALGORITHM = "HmacSHA256";
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -51,12 +55,21 @@ public class AuthService {
         return new SecretKeySpec(keyBytes, KEY_ALGORITHM);
     }
 
+    // TODO : MASTER 권한의 경우 추가 키가 필요하도록 설정. (실제론 관리자가 허락해줄때까지 대기하거나 추가 정보 등이 필요하다거나, DB에 key값을 hash로 저장하여 특정 시간에 업데이트 되는 값을 사용하도록 해야할듯.)
     @CircuitBreaker(name = "signUpCircuitBreaker", fallbackMethod = "fallbackSignUp")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signUp(AuthRequestDto userRequestDto) {
+    public ResponseEntity<ApiResponseDto<?>> signUp(AuthRequestDto userRequestDto) {
         if (userRepository.existsByUsername(userRequestDto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
+
+        if (userRequestDto.getRole() == UserRoleEnum.MASTER) {
+            String masterKey = userRequestDto.getMasterKey();
+            if (masterKey == null || !masterKey.equals(getMasterKeyHash())) {
+                throw new IllegalArgumentException(masterKey == null ? "Master key required" : "Invalid master key");
+            }
+        }
+
         String password = userRequestDto.getPassword();
         String encodedPassword = passwordEncoder.encode(password);
 
@@ -71,7 +84,7 @@ public class AuthService {
 
     @CircuitBreaker(name = "signInCircuitBreaker", fallbackMethod = "fallbackSignIn")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signIn(AuthRequestDto authRequestDto) {
+    public ResponseEntity<ApiResponseDto<?>> signIn(AuthRequestDto authRequestDto) {
         User user = userRepository.findByUsername(authRequestDto.getUsername()).orElseThrow(()
                 -> new IllegalArgumentException("Please check username or password"));
 
@@ -121,7 +134,7 @@ public class AuthService {
                 .compact();
     }
 
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<?>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -130,7 +143,7 @@ public class AuthService {
                 .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<AuthResponseDto>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<?>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -153,5 +166,9 @@ public class AuthService {
                 .onFailureRateExceeded(event -> log.info("###CircuitBreaker Failure Rate Exceeded: {}", event)) // 실패율 초과 이벤트 리스너
                 .onCallNotPermitted(event -> log.info("###CircuitBreaker Call Not Permitted: {}", event)) // 호출 차단 이벤트 리스너
                 .onError(event -> log.info("###CircuitBreaker Error: {}", event)); // 오류 발생 이벤트 리스너
+    }
+
+    private String getMasterKeyHash() {
+        return masterKey;
     }
 }

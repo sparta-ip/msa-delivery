@@ -1,6 +1,8 @@
 package com.msa_delivery.user.application.dtos;
 
 import com.msa_delivery.user.domain.entity.UserRoleEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +14,9 @@ import java.time.LocalDateTime;
  * 다만, 초기값이 필요할 경우 @NoArgsConstructor + @Setter를 사용해 해결하는 것이 좋다.
  */
 @Data
+@AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class UserSearchDto {
 
     private String username;
