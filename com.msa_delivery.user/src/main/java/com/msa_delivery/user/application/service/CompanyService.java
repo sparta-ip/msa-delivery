@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.UUID;
 
-public interface DeliveryService {
-    ResponseEntity<ApiResponseDto<GetUUIDDto>> getDeliveryByUserId(Long userId, String headerUserId, String username, String role);
+public interface CompanyService {
+    ResponseEntity<ApiResponseDto<GetUUIDDto>> getCompanyByUserId(Long userId, String headerUserId, String username, String role);
 
-    ResponseEntity<ApiResponseDto<?>> softDeleteDelivery(UUID deliveryId);
+    ResponseEntity<ApiResponseDto<?>> softDeleteCompany(UUID companyId);
 }

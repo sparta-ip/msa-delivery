@@ -27,6 +27,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final CompanyService companyService;
+    private final DeliveryService deliveryService;
+    private final HubService hubService;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     @PostConstruct
@@ -101,8 +104,11 @@ public class UserService {
         checkIsMaster(role);
         verifyUserToAuth(userId, headerUsername, role);
         /**
-         * TODO : userId를 배송에서 delivery_manager_id or receiver_id or receiver_slack_id로 검색 후 OUT_FOR_DELIVERY 이외의 값이 하나라도 있을 경우 삭제 불가 로직 필요.
+         * TODO : userId를 각 서버에 검색으로 이용해 delivery_manager_id, hub_id, company_id를 받아와 삭제 진행.
+         * TODO : SAGA 패턴을 적용하려면 비동기 및 보상 로직이 필요하니, 이번 프로젝트는 시간이 걸리지만 동기 형식으로 진행
          */
+
+
         User user = userRepository.findByUsername(username).orElseThrow(()
                 -> new IllegalArgumentException("user not exist."));
         user.softDeleteUser(headerUsername);
