@@ -1,8 +1,8 @@
-package com.msa_delivery.hub.infrastrcture.kakao;
+package com.msa_delivery.hub.infrastructure.kakao;
 
 import com.msa_delivery.hub.domain.model.Location;
-import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
-import com.msa_delivery.hub.infrastrcture.kakao.response.KakaoDirectionsResponse;
+import com.msa_delivery.hub.infrastructure.kakao.response.KaKaoGeoResponse;
+import com.msa_delivery.hub.infrastructure.kakao.response.KakaoDirectionsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +12,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -49,23 +48,27 @@ public class KaKaoMapClient {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoApikey);
         headers.set("Accept", "application/json");
-        URI uri = UriComponentsBuilder
-                .fromHttpUrl("https://apis-navi.kakaomobility.com/v1/directions")
-                .queryParam("origin", origin.getLongitude() + "," + origin.getLatitude())
-                .queryParam("destination", destination.getLongitude() + "," + destination.getLatitude())
-                .build()
-                .toUri();
-        HttpEntity<String> addressEntity = new HttpEntity<>(headers);
+
+
+        String originCoord = origin.getLongitude() + "," + origin.getLatitude();
+        String destCoord = destination.getLongitude() + "," + destination.getLatitude();
+
+        String url = String.format("https://apis-navi.kakaomobility.com/v1/directions?origin=%s&destination=%s",
+                originCoord, destCoord);
+        log.info("Request URL: {}", url);
+
+        URI uri = URI.create(url);
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
         ResponseEntity<KakaoDirectionsResponse> response = restTemplate.exchange(
                 uri,
                 HttpMethod.GET,
-                addressEntity,
-                KakaoDirectionsResponse.class);
-        return response.getBody();
-
-
-
+                requestEntity,
+                KakaoDirectionsResponse.class
+        );
+            return response.getBody();
     }
+
 
 
 }
