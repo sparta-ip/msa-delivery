@@ -16,7 +16,7 @@ public interface HubClient {
 
     // search 로 받아오기 - 허브 서비스 구현 확인하면서 적절하게 변경
     @GetMapping("/api/hubs")
-    ResponseEntity<CommonResponse<Page<HubDto>>> getHubs(@RequestParam("search") String name,
+    ResponseEntity<CommonResponse<Page<HubDto>>> getHubs(@RequestParam("name") String name,
                                                          @RequestHeader("X-User_Id") String userId,
                                                          @RequestHeader("X-Username") String username,
                                                          @RequestHeader("X-Role") String role);
