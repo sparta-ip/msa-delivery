@@ -13,41 +13,33 @@ public class FallbackController {
 
     @GetMapping("/fallback")
     public Mono<ResponseEntity<ApiResponseDto<?>>> getFallback(ServerWebExchange exchange) {
-        String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Get : " + requestUri + " is currently unavailable. Please try again later.",
+                        "Get : request is currently unavailable. Please try again later.",
                         "")));
     }
 
     @PostMapping("/fallback")
     public Mono<ResponseEntity<ApiResponseDto<?>>> postFallback(ServerWebExchange exchange) {
-        String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Post : " + requestUri + " is currently unavailable. Please try again later.",
+                        "Post : request is currently unavailable. Please try again later.",
                         "")));
     }
 
     @PutMapping("/fallback")
     public Mono<ResponseEntity<ApiResponseDto<?>>> putFallback(ServerWebExchange exchange) {
-        String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Put : " + requestUri + " is currently unavailable. Please try again later.",
+                        "Put : request is currently unavailable. Please try again later.",
                         "")));
     }
 
     @DeleteMapping("/fallback")
     public Mono<ResponseEntity<ApiResponseDto<?>>> deleteFallback(ServerWebExchange exchange) {
-        String requestUri = getRequestUri(exchange);
         return Mono.just(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ApiResponseDto.response(HttpStatus.SERVICE_UNAVAILABLE.value(),
-                        "Delete : " + requestUri + " is currently unavailable. Please try again later.",
+                        "Delete : request is currently unavailable. Please try again later.",
                         "")));
-    }
-
-    private String getRequestUri(ServerWebExchange exchange) {
-        return exchange.getRequest().getURI().toString();
     }
 }
