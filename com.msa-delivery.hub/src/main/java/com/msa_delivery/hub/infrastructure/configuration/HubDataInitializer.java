@@ -6,16 +6,21 @@ import com.msa_delivery.hub.domain.model.Hubs;
 import com.msa_delivery.hub.domain.model.Location;
 import com.msa_delivery.hub.domain.model.RouteInfo;
 import com.msa_delivery.hub.domain.port.NavigationPort;
+import com.msa_delivery.hub.domain.repository.HubReadRepository;
 import com.msa_delivery.hub.domain.repository.HubRouteRepository;
 import com.msa_delivery.hub.domain.repository.HubWriteRepository;
+import com.msa_delivery.hub.domain.service.HubDomainService;
 import com.msa_delivery.hub.infrastructure.kakao.KaKaoMapClient;
 import com.msa_delivery.hub.infrastructure.kakao.response.KaKaoGeoResponse;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +33,8 @@ public class HubDataInitializer {
     private final HubRouteRepository hubRouteRepository;
     private final KaKaoMapClient kaKaoMapClient;
     private final NavigationPort navigationPort;
+    private static Long hubManagerId = 6L;
+
 
     @Transactional
     @PostConstruct
@@ -51,6 +58,7 @@ public class HubDataInitializer {
                 createHubWithLocation("경상북도 센터", "경북 안동시 풍천면 도청대로 455"),
                 createHubWithLocation("경상남도 센터", "경남 창원시 의창구 중앙대로 300")
         );
+
         List<Hubs> savedHubs = hubWriteRepository.saveAll(hubs);
 
 
@@ -65,13 +73,15 @@ public class HubDataInitializer {
                             destHub.getLocation()
                     );
 
+
+
                     HubRoute route = HubRoute.builder()
                             .departureHub(originHub)
                             .arrivalHub(destHub)
                             .distance(routeInfo.distance())
                             .duration(routeInfo.duration())
                             .createdAt(LocalDateTime.now())
-                            .createdBy(1L)
+                            .createdBy("MASTER")
                             .isDeleted(false)
                             .build();
 
@@ -87,22 +97,22 @@ public class HubDataInitializer {
         }
     }
 
-
-
-
     private Hubs createHubWithLocation(String name, String address) {
         Location location = null;
 
+
         KaKaoGeoResponse geoResponse = kaKaoMapClient.convertAddressToGeocode(address);
             location = geoResponse.getDocuments().get(0).toLocation();
+
 
 
             return Hubs.builder()
                     .name(name)
                     .address(address)
                     .location(location)
+                    .hubManagerId(hubManagerId++)
                     .createdAt(LocalDateTime.now())
-                    .createdBy("system")
+                    .createdBy("master")
                     .isDeleted(false)
                     .build();
 
