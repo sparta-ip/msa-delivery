@@ -54,7 +54,7 @@ public class HubApplicationServiceImpl implements HubApplicationService {
                 createHubReqDto.getHub().getName(),
                 createHubReqDto.getHub().getAddress(),
                 username);
-        List<HubRoute> updatedRoutes = hubRouteDomainService.updateRelatedRoutes(hubId, userId);
+        List<HubRoute> updatedRoutes = hubRouteDomainService.updateRelatedRoutes(hubId, username);
 
         return new HubWithRoutesResponse(HubRes.from(updatedHub), updatedRoutes.stream().map(HubRouteResponse::from).toList());
     }

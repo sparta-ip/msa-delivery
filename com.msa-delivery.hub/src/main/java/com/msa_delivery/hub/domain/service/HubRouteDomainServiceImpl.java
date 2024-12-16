@@ -85,7 +85,7 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
 
     @Transactional
     @Override
-    public List<HubRoute> updateRelatedRoutes(UUID hubId, String userId) {
+    public List<HubRoute> updateRelatedRoutes(UUID hubId, String username) {
         List<HubRoute> relatedRoutes = hubRouteRepository
                 .findAllByArrivalHubIdOrDepartureHubId(hubId, hubId);
 
@@ -97,7 +97,7 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
             route.updateRouteInfo(
                     newRouteInfo.distance(),
                     newRouteInfo.duration(),
-                    userId
+                    username
             );
         }
         return relatedRoutes;

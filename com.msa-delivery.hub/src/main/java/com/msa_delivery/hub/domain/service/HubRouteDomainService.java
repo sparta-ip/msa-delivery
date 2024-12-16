@@ -15,6 +15,6 @@ public interface HubRouteDomainService {
      List<HubRouteResponse> createHubRoute(String userId);
      void deleteRelatedRoutes(UUID hubId, String userId);
      List<HubRoute> generateRoutes(Hubs newHub, UUID hubId, String userId);
-     List<HubRoute> updateRelatedRoutes(UUID hubId, String userId);
+     List<HubRoute> updateRelatedRoutes(UUID hubId, String username);
      Page<HubRoute> searchHubRoute(UUID hubRoutId, UUID departureHubId, UUID arrivalHubId, Boolean isDeleted, Pageable pageable);
 }
