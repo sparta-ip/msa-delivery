@@ -88,8 +88,8 @@ public class DeliveryService {
 
         // 예상 거리, 예상 소요시간은 HubRouteClient 호출
         HubRouteDto hubRouteDto = hubClient.getHubRoute(departureId, arrivalId, userId, username, role).getBody().getData().getContent().get(0);
-        Integer expectDistance = hubRouteDto.getDuration();
-        Integer expectDuration = hubRouteDto.getDistance();
+        Integer expectDistance = hubRouteDto.getDistance();
+        Integer expectDuration = hubRouteDto.getDuration();
 
         // TODO: 시퀀스, 실제 거리, 실제 소요 시간
         // sequence: P2P 면 sequence 는 항상 1 (의미 없음)
