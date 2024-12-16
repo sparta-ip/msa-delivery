@@ -16,7 +16,7 @@ public interface HubWriteRepository extends JpaRepository<Hubs, UUID> {
 
     @Modifying
     @Query("UPDATE Hubs h SET h.deletedAt = :deletedAt, h.isDeleted = true, h.deletedBy = :deletedBy WHERE h.hubId = :hubId")
-    void updateHubToDeleted(@Param("hubId") UUID hubId, @Param("deletedAt") LocalDateTime deletedAt, @Param("deletedBy") Long deletedBy);
+    void updateHubToDeleted(@Param("hubId") UUID hubId, @Param("deletedAt") LocalDateTime deletedAt, @Param("deletedBy") String deletedBy);
 }
 
 
