@@ -21,18 +21,26 @@ public class InitializeEntityService {
     @Transactional
     public Boolean initializeEntity() {
         try {
-            if (userRepository.existsByUsername("hubs0")) {
+            if (userRepository.existsByUsername("master0")) {
                 throw new IllegalArgumentException("initialize can not done twice.");
             }
+
             List<User> users = new ArrayList<>();
-            for (int i = 0; i < 16; i++) {
+
+            users.add(createUser("master0", "aA123123!", UserRoleEnum.MASTER, "masterSlack0"));
+
+            for (int i = 0; i < 2; i++) {
+                users.add(createUser("company" + Integer.toString(i), "aA123123!", UserRoleEnum.COMPANY_MANAGER, "companySlack" + Integer.toString(i)));
+            }
+
+            for (int i = 0; i < 2; i++) {
+                users.add(createUser("delivery" + Integer.toString(i), "aA123123!", UserRoleEnum.DELIVERY_MANAGER, "deliverySlack" + Integer.toString(i)));
+            }
+
+            for (int i = 0; i < 17; i++) {
                 users.add(createUser("hubs" + Integer.toString(i), "aA123123!", UserRoleEnum.HUB_MANAGER, "slack" + Integer.toString(i)));
             }
-            User userCompany = createUser("company0", "aA123123!", UserRoleEnum.COMPANY_MANAGER, "companySlack0");
-            User userDelivery = createUser("del0", "aA123123!", UserRoleEnum.DELIVERY_MANAGER, "deliverySlack0");
 
-            userRepository.save(userCompany);
-            userRepository.save(userDelivery);
             userRepository.saveAll(users);
 
             return true;
