@@ -51,7 +51,6 @@ public class Order extends BaseEntity {
 
         return Order.builder()
             .order_id(UUID.randomUUID())
-            .delivery_id(UUID.randomUUID())
             .receiver_id(orderRequestDto.getReceiver_id())
             .supplier_id(orderRequestDto.getSupplier_id())
             .product_id(orderRequestDto.getProduct_id())
@@ -60,6 +59,10 @@ public class Order extends BaseEntity {
             .status(String.valueOf(OrderStatus.SUCCESS))
             .build();
 
+    }
+
+    public void addDeliveryId(UUID delivery_id) {
+        this.delivery_id = delivery_id;
     }
 
     public void updateOrder(Update orderRequestDto) {
