@@ -138,7 +138,6 @@ public class UserService {
 //                deliveryService.softDeleteDeliveryManager(deliveryManager);
 //            }
 //        }
-
         // company 삭제 요청
 
         // hub 삭제 요청
