@@ -72,7 +72,8 @@ public class HubDomainServiceImpl implements HubDomainService {
         return hubReadRepository.findByHubId(hubId).map(hubs -> {
             if (!hubs.getAddress().equals(address)) {
                 Location newLocation = geoCodingPort.getGeocode(address);
-                hubs.updateHubData(name, address, newLocation, username);
+                LocalDateTime updated = LocalDateTime.now();
+                hubs.updateHubData(name, address, newLocation, username ,updated);
                 return hubs;
             } else {
                 throw new IllegalArgumentException("현재 주소와 동일한 주소 입니다.");
