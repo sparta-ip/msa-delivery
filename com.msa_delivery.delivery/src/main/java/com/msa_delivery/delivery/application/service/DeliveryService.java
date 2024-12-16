@@ -50,6 +50,7 @@ public class DeliveryService {
     }
 
     // 배송 생성 로직 분리
+    @Transactional
     private Delivery createDeliveryEntity(DeliveryRequest request, String username) {
         UUID orderId = request.getOrderId();
         Long receiverId = request.getReceiverId();
@@ -63,7 +64,7 @@ public class DeliveryService {
         // 배송 담당자 타입이 업체 배송 담당자이고 orderId 가 null 인 값 중에 sequence 가 가장 작은 값 (isDeleteIsFalse)
         DeliveryManager companyDeliveryManager = deliveryManagerRepository
                 .findAvailableDeliveryManager(DeliveryManagerType.COMPANY_DELIVERY_MANAGER, arrivalId)
-                .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 배송 담당자가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 업체 배송 담당자가 없습니다."));
         deliveryManagerService.updateOrderId(companyDeliveryManager, orderId);
 
         // 배송 생성
@@ -74,6 +75,7 @@ public class DeliveryService {
     }
 
     // 배송 경로 생성 로직 분리
+    @Transactional
     private DeliveryRoute createDeliveryRouteEntity(DeliveryRequest request, Delivery delivery, String userId, String username, String role) {
         UUID departureId = request.getDepartureId();
         UUID arrivalId = request.getArrivalId();
@@ -83,7 +85,7 @@ public class DeliveryService {
         // 배송 담당자 타입이 허브 배송 담당자이고 orderId 가 null 인 값 중에 sequence 가 가장 작은 값 (isDeleteIsFalse)
         DeliveryManager hubDeliveryManager = deliveryManagerRepository
                 .findAvailableHubDeliveryManager()
-                .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 배송 담당자가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("지정 할 수 있는 허브 배송 담당자가 없습니다."));
         deliveryManagerService.updateOrderId(hubDeliveryManager, delivery.getOrderId());
 
         // 예상 거리, 예상 소요시간은 HubRouteClient 호출
