@@ -2,6 +2,7 @@ package com.msa_delivery.delivery.infrastructure.client;
 
 import com.msa_delivery.delivery.application.dto.CommonResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,8 +22,8 @@ public interface HubClient {
 
     // 출발 허브와 도착 허브를 넣을 때, 허브 간 경로의 정보를 찾아주는 함수 (search)
     @GetMapping("/api/hubs/hub-routes")
-    ResponseEntity<CommonResponse<HubRouteDto>> getHubRoute(@RequestParam UUID departureHubId, @RequestParam UUID arrivalHubId,
-                                                            @RequestHeader("X-User_Id") String userId,
-                                                            @RequestHeader("X-Username") String username,
-                                                            @RequestHeader("X-Role") String role);
+    ResponseEntity<CommonResponse<Page<HubRouteDto>>> getHubRoute(@RequestParam UUID departureHubId, @RequestParam UUID arrivalHubId,
+                                                                 @RequestHeader("X-User_Id") String userId,
+                                                                 @RequestHeader("X-Username") String username,
+                                                                 @RequestHeader("X-Role") String role);
 }

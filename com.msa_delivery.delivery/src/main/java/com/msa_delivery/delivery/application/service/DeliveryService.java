@@ -87,7 +87,7 @@ public class DeliveryService {
         deliveryManagerService.updateOrderId(hubDeliveryManager, delivery.getOrderId());
 
         // 예상 거리, 예상 소요시간은 HubRouteClient 호출
-        HubRouteDto hubRouteDto = hubClient.getHubRoute(departureId, arrivalId, userId, username, role).getBody().getData();
+        HubRouteDto hubRouteDto = hubClient.getHubRoute(departureId, arrivalId, userId, username, role).getBody().getData().getContent().get(0);
         Integer expectDistance = hubRouteDto.getDuration();
         Integer expectDuration = hubRouteDto.getDistance();
 

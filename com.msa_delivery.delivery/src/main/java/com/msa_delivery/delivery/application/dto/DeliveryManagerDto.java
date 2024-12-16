@@ -12,7 +12,7 @@ import java.util.UUID;
 @Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DeliveryManagerDto extends BaseDto{
-    private Long deliveryMangerId;
+    private Long deliveryManagerId;
     private UUID orderId;
     private String slackId;
     private UUID hubId;
@@ -21,7 +21,7 @@ public class DeliveryManagerDto extends BaseDto{
 
     public static DeliveryManagerDto create(DeliveryManager deliveryManager) {
         DeliveryManagerDto dto = DeliveryManagerDto.builder()
-                .deliveryMangerId(deliveryManager.getId())
+                .deliveryManagerId(deliveryManager.getId())
                 .orderId(deliveryManager.getOrderId())
                 .slackId(deliveryManager.getSlackId())
                 .hubId(deliveryManager.getHubId())
