@@ -29,11 +29,11 @@ public class HubApplicationServiceImpl implements HubApplicationService {
 
     @Transactional
     @Override
-    public HubWithRoutesResponse createHubWithRoutes(CreateHubReqDto createHubReqDto, Long userId) {
+    public HubWithRoutesResponse createHubWithRoutes(CreateHubReqDto createHubReqDto, String userId, String username) {
         Hubs createdHub = hubDomainService.createHubs(
                 createHubReqDto.getHub().getName(),
                 createHubReqDto.getHub().getAddress(),
-                userId
+                username
         );
         List<HubRoute> newRoutes = hubRouteDomainService.generateRoutes(createdHub, createdHub.getHubId(), userId);
 
@@ -47,23 +47,29 @@ public class HubApplicationServiceImpl implements HubApplicationService {
 
     @Transactional
     @Override
-    public HubWithRoutesResponse updateHub(UUID hubId , CreateHubReqDto createHubReqDto, Long userId) {
+    public HubWithRoutesResponse updateHub(UUID hubId , CreateHubReqDto createHubReqDto, String userId ,String username) {
 
         Hubs updatedHub = hubDomainService.updateHub(
                 hubId,
                 createHubReqDto.getHub().getName(),
                 createHubReqDto.getHub().getAddress(),
-                userId);
-        List<HubRoute> updatedRoutes = hubRouteDomainService.updateRelatedRoutes(hubId, userId);
+                username);
+        List<HubRoute> updatedRoutes = hubRouteDomainService.updateRelatedRoutes(hubId, username);
 
         return new HubWithRoutesResponse(HubRes.from(updatedHub), updatedRoutes.stream().map(HubRouteResponse::from).toList());
     }
 
     @Transactional
     @Override
-    public void deleteHub(UUID hubId, Long userId) {
+    public void deleteHub(UUID hubId, String userId) {
         hubDomainService.deleteHubs(hubId, userId);
         hubRouteDomainService.deleteRelatedRoutes(hubId, userId);
+    }
+
+    @Override
+    public HubRes getHub(UUID hubId) {
+
+        return HubRes.from(hubDomainService.getHub(hubId));
     }
 
     public Page<HubRes> searchHubs(HubSearch hubSearch, Pageable pageable) {

@@ -19,7 +19,7 @@ import java.util.UUID;
 public class Hubs {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID hubId;
-    
+
     @Column(name = "hub_manager_id")
     private Long hubManagerId;
 
@@ -52,9 +52,10 @@ public class Hubs {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public void updateHubData(String name, String address, Location location) {
+    public void updateHubData(String name, String address, Location location, String username) {
         this.name = name;
         this.address = address;
         this.location = location;
+        this.createdBy = username;
     }
 }

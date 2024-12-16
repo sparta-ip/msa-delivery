@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import java.util.UUID;
 
 
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class HubRouteApplicationServiceImpl implements HubRouteApplicationServic
     private final HubRouteDomainService hubRouteDomainService;
 
     @Override
-    public List<HubRouteResponse> createHubRouteList(Long userId) {
+    public List<HubRouteResponse> createHubRouteList(String userId) {
         return hubRouteDomainService.createHubRoute(userId);
     }
 
@@ -36,4 +36,11 @@ public class HubRouteApplicationServiceImpl implements HubRouteApplicationServic
         );
         return hubRoutePage.map(HubRouteResponse::from);
     }
+
+
+    @Override
+    public HubRouteResponse getHubRouteById(UUID hubRouteId) {
+        return HubRouteResponse.from(hubRouteDomainService.getHubRouteById(hubRouteId));
+    }
+
 }

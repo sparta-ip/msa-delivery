@@ -12,10 +12,8 @@ import java.util.UUID;
 public interface HubApplicationService {
 
     Page<HubRes> searchHubs(HubSearch hubSearch, Pageable pageable);
-
-    HubWithRoutesResponse createHubWithRoutes(CreateHubReqDto createHubReqDto, Long userId);
-
-    HubWithRoutesResponse updateHub(UUID hubId, CreateHubReqDto createHubReqDto, Long userId);
-
-    void deleteHub(UUID id, Long UserId);
+    HubWithRoutesResponse createHubWithRoutes(CreateHubReqDto createHubReqDto, String userId, String username);
+    HubWithRoutesResponse updateHub(UUID hubId, CreateHubReqDto createHubReqDto,String userId, String username);
+    void deleteHub(UUID id, String UserId);
+    HubRes getHub(UUID hubId);
 }

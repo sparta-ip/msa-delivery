@@ -28,7 +28,7 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
     private final HubRouteRepositoryCustom hubRouteRepositoryCustom;
 
     @Override
-    public List<HubRouteResponse> createHubRoute(Long userId) {
+    public List<HubRouteResponse> createHubRoute(String userId) {
         List<Hubs> hubsList = hubDomainService.getHubAll();
         List<HubRoute> routes = new ArrayList<>();
 
@@ -57,7 +57,7 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
 
     @Transactional
     @Override
-    public List<HubRoute> generateRoutes(Hubs newHub, UUID hubId, Long userId) {
+    public List<HubRoute> generateRoutes(Hubs newHub, UUID hubId, String userId) {
 
         List<Hubs> existingHubs = hubDomainService.getHubByIsDeletedFalse(hubId);
 
@@ -85,7 +85,7 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
 
     @Transactional
     @Override
-    public List<HubRoute> updateRelatedRoutes(UUID hubId, Long userId) {
+    public List<HubRoute> updateRelatedRoutes(UUID hubId, String username) {
         List<HubRoute> relatedRoutes = hubRouteRepository
                 .findAllByArrivalHubIdOrDepartureHubId(hubId, hubId);
 
@@ -97,12 +97,12 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
             route.updateRouteInfo(
                     newRouteInfo.distance(),
                     newRouteInfo.duration(),
-                    userId
+                    username
             );
         }
         return relatedRoutes;
     }
-    public void deleteRelatedRoutes(UUID hubId, Long userId) {
+    public void deleteRelatedRoutes(UUID hubId, String userId) {
         LocalDateTime now = LocalDateTime.now();
         hubRouteRepository.softDeleteByHubId(hubId, userId, now);
     }
@@ -110,6 +110,11 @@ public class HubRouteDomainServiceImpl implements HubRouteDomainService {
 
         return hubRouteRepositoryCustom.searchHubs(hubRoutId, arrivalHubId, departureHubId, isDeleted, pageable);
 
+    }
+    @Override
+    public HubRoute getHubRouteById(UUID hubRouteId) {
+        return hubRouteRepository.findById(hubRouteId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 허브 경로를 찾을 수 없습니다."));
     }
 
 }

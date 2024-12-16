@@ -23,18 +23,24 @@ public class HubRepositoryCustomImpl extends QuerydslRepositorySupport implement
     public HubRepositoryCustomImpl() {
         super(Hubs.class);
     }
-//
+
     @Override
     public Page<Hubs> searchHubs(UUID hubId, String name, String address, Long hubManagerId, Boolean isDeleted, Pageable pageable) {
-        JPQLQuery<Hubs> query = from(hubs)
-                .where(
-                        hubIdEq(hubId),
-                        nameContains(name),
-                        addressContains(address),
-                        hubManagerIdEq(hubManagerId),
-                        isDeletedEq(isDeleted)
-                );
 
+        JPQLQuery<Hubs> query;
+
+        if (hubId == null && !hasText(name) && !hasText(address) && hubManagerId == null && isDeleted == null) {
+            query = from(hubs);
+        } else {
+            query = from(hubs)
+                    .where(
+                            hubIdEq(hubId),
+                            nameContains(name),
+                            addressContains(address),
+                            hubManagerIdEq(hubManagerId),
+                            isDeletedEq(isDeleted)
+                    );
+        }
         List<Hubs> content = getQuerydsl()
                 .applyPagination(pageable, query)
                 .fetch();

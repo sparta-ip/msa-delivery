@@ -9,10 +9,11 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface HubRouteRepository extends JpaRepository<HubRoute, Long> {
+public interface HubRouteRepository extends JpaRepository<HubRoute, UUID> {
 
     @Query("SELECT r FROM HubRoute r WHERE r.arrivalHub.hubId = :arrivalHubId OR r.departureHub.hubId = :departureHubId")
     List<HubRoute> findAllByArrivalHubIdOrDepartureHubId(
@@ -29,5 +30,6 @@ public interface HubRouteRepository extends JpaRepository<HubRoute, Long> {
         WHERE (r.arrivalHub.hubId = :hubId OR r.departureHub.hubId = :hubId)
         AND r.isDeleted = false
     """)
-    void softDeleteByHubId(@Param("hubId") UUID hubId, @Param("userId") Long userId, @Param("now") LocalDateTime now);
+    void softDeleteByHubId(@Param("hubId") UUID hubId, @Param("userId") String userId, @Param("now") LocalDateTime now);
+
 }

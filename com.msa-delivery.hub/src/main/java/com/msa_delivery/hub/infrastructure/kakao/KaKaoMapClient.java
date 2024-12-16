@@ -21,7 +21,7 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class KaKaoMapClient {
 
-    @Value("${kakao-api-key}")
+    @Value("${kakao.api.key}")
     private String kakaoApikey;
     private final RestTemplate restTemplate;
     private static final String KAKAO_MAP_API_URL = "https://dapi.kakao.com/v2/local/search/address.json";

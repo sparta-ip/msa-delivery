@@ -25,14 +25,7 @@ public class CreateHubReqDto {
 
     }
 
-    public Hubs toEntity(String createdBy, Location location) {
-        return Hubs.builder()
-                .name(hub.getName())
-                .address(hub.getAddress())
-                .location(location)
-                .createdBy(createdBy)
-                .build();
-    }
+
 
 }
 
