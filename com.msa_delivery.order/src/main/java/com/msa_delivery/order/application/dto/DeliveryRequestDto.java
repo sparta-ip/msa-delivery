@@ -13,19 +13,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DeliveryRequestDto {
 
-    @JsonProperty("orderId")
+//    @JsonProperty("orderId")
     private UUID order_id;
 
-    @JsonProperty("receiverId")
+//    @JsonProperty("receiverId")
     private Long receiver_id;
 
-    @JsonProperty("receiverSlackId")
+//    @JsonProperty("receiverSlackId")
     private String receiver_slack_id;
 
-    @JsonProperty("departureId")
+//    @JsonProperty("departureId")
     private UUID departure_id;
 
-    @JsonProperty("arrivalId")
+//    @JsonProperty("arrivalId")
     private UUID arrival_id;
 
     private String address;

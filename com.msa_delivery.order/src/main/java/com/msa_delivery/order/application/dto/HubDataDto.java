@@ -8,30 +8,30 @@ import lombok.Data;
 @Data
 public class HubDataDto {
 
-    @JsonProperty("hubId")
+//    @JsonProperty("hubId")
     private UUID hub_id;
 
-    @JsonProperty("hubManagerId")
+//    @JsonProperty("hubManagerId")
     private Long hub_manager_id;
 
     private String name;
     private String address;
 
-    @JsonProperty("latitude")
+//    @JsonProperty("latitude")
     private Double lat;
 
-    @JsonProperty("longitude")
+//    @JsonProperty("longitude")
     private Double lng;
 
-    @JsonProperty("createdAt")
+//    @JsonProperty("createdAt")
     private LocalDateTime created_at;
 
-    @JsonProperty("createdBy")
+//    @JsonProperty("createdBy")
     private String created_by;
 
-    @JsonProperty("updatedAt")
+//    @JsonProperty("updatedAt")
     private LocalDateTime updated_at;
 
-    @JsonProperty("updatedBy")
+//    @JsonProperty("updatedBy")
     private String updated_by;
 }

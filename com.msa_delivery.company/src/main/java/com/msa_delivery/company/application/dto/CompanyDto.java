@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompanyDto extends BaseDto {
     private UUID companyId;
-    private Long managerId;
+    private Long companyManagerId;
     private String slackId;
     private UUID hubId;
     private String name;
@@ -23,7 +23,7 @@ public class CompanyDto extends BaseDto {
     public static CompanyDto create(Company company) {
         CompanyDto dto = CompanyDto.builder()
                 .companyId(company.getId())
-                .managerId(company.getManagerId())
+                .companyManagerId(company.getManagerId())
                 .slackId(company.getSlackId())
                 .hubId(company.getHubId())
                 .name(company.getName())
