@@ -1,6 +1,7 @@
 package com.msa_delivery.order.application.service;
 
 import com.msa_delivery.order.application.dto.CompanyDataDto;
+import com.msa_delivery.order.application.dto.DeliveryResponseDto;
 import com.msa_delivery.order.application.dto.HubDataDto;
 import com.msa_delivery.order.application.dto.OrderDataDto;
 import com.msa_delivery.order.application.dto.OrderRequestDto;
@@ -97,7 +98,9 @@ public class OrderService {
                 Order savedOrder = orderRepository.save(order);
 
                 // 배송 요청 및 AI 예측
-                deliveryService.createDelivery(savedOrder, receiverData, supplierData);
+                DeliveryResponseDto deliveryResponseDto = deliveryService.createDelivery(savedOrder, receiverData, supplierData);
+                order.addDeliveryId(deliveryResponseDto.getDelivery().getDelivery_id());
+
                 String finalDeliveryTime = geminiService.predictFinalDeliveryTime(savedOrder,
                     productData, receiverData, supplierHubData, receiverHubData);
                 log.info("최종 발송 시한: {}", finalDeliveryTime);
