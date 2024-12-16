@@ -5,6 +5,10 @@ import com.epages.restdocs.apispec.ResourceDocumentation;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msa_delivery.user.application.dtos.UserSearchDto;
+import com.msa_delivery.user.domain.entity.User;
+import com.msa_delivery.user.domain.entity.UserRoleEnum;
+import com.msa_delivery.user.domain.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
@@ -14,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.operation.preprocess.Preprocessors;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -38,17 +44,40 @@ class UserControllerApiTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @BeforeEach
+    @Transactional
+    @Rollback
+    void setUp() {
+        User user = User.builder()
+                .username("master001")
+                .password(passwordEncoder.encode("aA123123!"))
+                .role(UserRoleEnum.MASTER)
+                .slackId("slackMaster01")
+                .createdBy("SYSTEM")
+                .updatedBy("SYSTEM")
+                .build();
+        userRepository.save(user);
+    }
+
     @Test
-    @Transactional(readOnly = true)
+    @Rollback
+    @Transactional
     public void testGetGetUserSuccess() throws Exception {
         //given
+        User user = userRepository.findByUsername("master001").orElseThrow();
 
         //when
         mockMvc.perform(
-                        RestDocumentationRequestBuilders.get("/api/users/{userId}", 3)
-                                .header("X-User_Id", "7")
-                                .header("X-Username", "master000")
-                                .header("X-Role", "MASTER")
+                        RestDocumentationRequestBuilders.get("/api/users/{userId}", user.getUserId())
+                                .header("X-User_Id", user.getUserId().toString())
+                                .header("X-Username", user.getUsername())
+                                .header("X-Role", user.getRole().toString())
                 )
                 .andExpectAll(
                         MockMvcResultMatchers.status().isOk()
@@ -98,18 +127,21 @@ class UserControllerApiTest {
     }
 
     @Test
+    @Transactional
+    @Rollback
     public void testGetSearchUsers() throws Exception {
         //given
-        UserSearchDto userSearchDto = UserSearchDto.builder().build();
+        User user = userRepository.findByUsername("master001").orElseThrow();
 
+        UserSearchDto userSearchDto = UserSearchDto.builder().build();
         String searchDtoToJson = objectMapper.writeValueAsString(userSearchDto);
 
         //when
         mockMvc.perform(
                         RestDocumentationRequestBuilders.get("/api/users")
-                                .header("X-User_Id", "7")
-                                .header("X-Username", "master000")
-                                .header("X-Role", "MASTER")
+                                .header("X-User_Id", user.getUserId().toString())
+                                .header("X-Username", user.getUsername())
+                                .header("X-Role", user.getRole().toString())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(searchDtoToJson)
                 )

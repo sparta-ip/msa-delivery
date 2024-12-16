@@ -1,5 +1,6 @@
 package com.msa_delivery.auth.application.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.msa_delivery.auth.domain.entity.User;
 import lombok.*;
 
@@ -10,6 +11,8 @@ import lombok.*;
 public class AuthResponseDto {
     private String username;
     private String role;
+
+    @JsonProperty("slack_id")
     private String slackId;
 
     public static AuthResponseDto fromEntity(User user) {
