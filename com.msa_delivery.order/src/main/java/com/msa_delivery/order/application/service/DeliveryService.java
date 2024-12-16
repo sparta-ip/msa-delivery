@@ -29,8 +29,8 @@ public class DeliveryService {
             order.getOrder_id(),
             receiverData.getCompany_manager_id(),
             receiverData.getSlack_id(),
-            receiverData.getHub_id(),
             supplierData.getHub_id(),
+            receiverData.getHub_id(),
             receiverData.getAddress()
         );
         log.info("배송 요청 dto 생성");
