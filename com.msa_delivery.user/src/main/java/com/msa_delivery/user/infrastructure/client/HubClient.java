@@ -12,12 +12,12 @@ import java.util.UUID;
 
 @FeignClient(name = "hub-service")
 public interface HubClient extends HubService {
-    @GetMapping("/api/hubs/hubs")
+    @GetMapping("/api/hubs")
     ResponseEntity<ApiResponseDto<GetUUIDDto>> getHubByUserId(@RequestParam(name = "hub_manager_id") Long userId,
                                                               @RequestHeader(value = "X-User_Id", required = true) @NotBlank String headerUserId,
                                                               @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
                                                               @RequestHeader(value = "X-Role", required = true) @NotBlank String role);
 
-    @DeleteMapping("/api/hubs/hubs/{hub_id}")
+    @DeleteMapping("/api/hubs/{hub_id}")
     ResponseEntity<ApiResponseDto<?>> softDeleteHub(@PathVariable(name = "hub_id") UUID hubId);
 }

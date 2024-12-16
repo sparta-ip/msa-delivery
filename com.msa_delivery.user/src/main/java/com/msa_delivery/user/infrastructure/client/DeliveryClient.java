@@ -12,12 +12,12 @@ import java.util.UUID;
 
 @FeignClient(name = "delivery-service")
 public interface DeliveryClient extends DeliveryService {
-    @GetMapping("/api/deliveries/deliveries")
-    ResponseEntity<ApiResponseDto<GetUUIDDto>> getDeliveryByUserId(@RequestParam(name = "delivery_manager_id") Long userId,
+    @GetMapping("/api/deliveries")
+    ResponseEntity<ApiResponseDto<GetUUIDDto>> getDeliveryByUserId(@RequestParam(name = "receiver_id") Long userId,
                                                                    @RequestHeader(value = "X-User_Id", required = true) @NotBlank String headerUserId,
                                                                    @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
                                                                    @RequestHeader(value = "X-Role", required = true) @NotBlank String role);
 
-    @DeleteMapping("/api/deliveries/deliveries/{delivery_id}")
+    @DeleteMapping("/api/deliveries/{delivery_id}")
     ResponseEntity<ApiResponseDto<?>> softDeleteDelivery(@PathVariable(name = "delivery_id") UUID deliveryId);
 }

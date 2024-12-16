@@ -4,6 +4,7 @@ import com.msa_delivery.user.application.dtos.*;
 import com.msa_delivery.user.domain.entity.User;
 import com.msa_delivery.user.domain.entity.UserRoleEnum;
 import com.msa_delivery.user.domain.repository.UserRepository;
+import com.msa_delivery.user.infrastructure.dtos.GetUUIDDto;
 import com.msa_delivery.user.infrastructure.dtos.VerifyUserDto;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -18,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -100,17 +104,32 @@ public class UserService {
     @CircuitBreaker(name = "softDeleteUserCircuitBreaker", fallbackMethod = "fallbackSoftDeleteUser")
     @Retry(name = "defaultRetry")
     @Transactional
-    public ResponseEntity<ApiResponseDto<?>> softDeleteUser(String username, String userId, String headerUsername, String role) {
+    public ResponseEntity<ApiResponseDto<?>> softDeleteUser(String username, String headerUserId, String headerUsername, String role) {
         checkIsMaster(role);
-        verifyUserToAuth(userId, headerUsername, role);
+        verifyUserToAuth(headerUserId, headerUsername, role);
         /**
          * TODO : userId를 각 서버에 검색으로 이용해 delivery_manager_id, hub_id, company_id를 받아와 삭제 진행.
          * TODO : SAGA 패턴을 적용하려면 비동기 및 보상 로직이 필요하니, 이번 프로젝트는 시간이 걸리지만 동기 형식으로 진행
          */
-
-
         User user = userRepository.findByUsername(username).orElseThrow(()
                 -> new IllegalArgumentException("user not exist."));
+
+        // delivery 삭제 요청
+        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryByUserId = deliveryService.getDeliveryByUserId(user.getUserId(), headerUserId, headerUsername, role);
+        ApiResponseDto<GetUUIDDto> body = deliveryByUserId.getBody();
+
+        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", body);
+
+        if (Objects.requireNonNull(body).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(body).getData().getDeliveryId().isEmpty()) {
+            for (UUID uuid : body.getData().getDeliveryId()) {
+                deliveryService.softDeleteDelivery(uuid);
+            }
+        }
+
+        // company 삭제 요청
+
+        // hub 삭제 요청
+
         user.softDeleteUser(headerUsername);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseDto.response(HttpStatus.OK.value(),
