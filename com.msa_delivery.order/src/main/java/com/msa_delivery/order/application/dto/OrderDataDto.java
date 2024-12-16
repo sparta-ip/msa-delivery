@@ -1,5 +1,6 @@
 package com.msa_delivery.order.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.msa_delivery.order.domain.model.Order;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -12,12 +13,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderDataDto {
 
+    @JsonProperty("orderId")
     private UUID order_id;
+
+    @JsonProperty("deliveryId")
     private UUID delivery_id;
+
     private String status;
+
+    @JsonProperty("createdAt")
     private LocalDateTime created_at;
+
+    @JsonProperty("createdBy")
     private String created_by;
+
+    @JsonProperty("updatedAt")
     private LocalDateTime updated_at;
+
+    @JsonProperty("updatedBy")
     private String updated_by;
 
     public OrderDataDto(Order order) {
