@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: hub-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/msa_delivery
+    username: ${username}
+    password: ${password}
+  jpa:
+    properties:
+      hibernate:
+        default_schema: hub_service
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  port: 19102
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:19090/eureka/
+kakao:
+  api:
+    key: ${kakao-api-key}
