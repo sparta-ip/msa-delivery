@@ -41,24 +41,24 @@ public class HubRoute {
     private LocalDateTime createdAt;
 
     @Column(name = "created_by")
-    private Long createdBy;
+    private String createdBy;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Column(name = "updated_by")
-    private Long updatedBy;
+    private String updatedBy;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Column(name = "deleted_by")
-    private Long deletedBy;
+    private String deletedBy;
     @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public void updateRouteInfo(Integer distance, Integer duration, Long updatedBy) {
+    public void updateRouteInfo(Integer distance, Integer duration, String updatedBy) {
         this.distance = distance;
         this.duration = duration;
         this.updatedAt = LocalDateTime.now();
