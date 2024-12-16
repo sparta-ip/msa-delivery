@@ -4,6 +4,7 @@ import com.msa_delivery.auth.application.dtos.ApiResponseDto;
 import com.msa_delivery.auth.application.dtos.AuthRequestDto;
 import com.msa_delivery.auth.application.dtos.AuthResponseDto;
 import com.msa_delivery.auth.application.service.AuthService;
+import com.msa_delivery.auth.application.service.InitializeEntityService;
 import com.msa_delivery.auth.infrastructure.dtos.VerifyUserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final InitializeEntityService initializeEntityService;
 
     @PostMapping("/sign-in")
     public ResponseEntity<ApiResponseDto<?>> signIn(@RequestBody AuthRequestDto authRequestDto
@@ -36,5 +38,10 @@ public class AuthController {
     @PostMapping("/verify")
     public Boolean verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
         return authService.verifyUser(verifyUserDto);
+    }
+
+    @GetMapping("/initialize")
+    public Boolean initializeEntity() {
+        return initializeEntityService.initializeEntity();
     }
 }
