@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserResponseDto {
+    private Long userId;
     private String username;
     private String role;
     private String slackId;
@@ -20,6 +21,7 @@ public class UserResponseDto {
 
     public static UserResponseDto fromEntity(User user) {
         return UserResponseDto.builder()
+                .userId(user.getUserId())
                 .username(user.getUsername())
                 .role(user.getRole().toString())
                 .slackId(user.getSlackId())

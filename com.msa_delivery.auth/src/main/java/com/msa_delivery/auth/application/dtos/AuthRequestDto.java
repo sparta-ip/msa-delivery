@@ -1,5 +1,6 @@
 package com.msa_delivery.auth.application.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.msa_delivery.auth.domain.entity.UserRoleEnum;
 import jakarta.validation.constraints.Pattern;
@@ -9,6 +10,7 @@ import lombok.*;
 
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AuthRequestDto {
@@ -26,4 +28,7 @@ public class AuthRequestDto {
 
     @JsonProperty("slack_id")
     private String slackId;
+
+    @JsonProperty("master_key")
+    private String masterKey;
 }

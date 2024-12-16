@@ -14,7 +14,12 @@ import java.util.UUID;
 @Repository
 public interface HubRouteRepository extends JpaRepository<HubRoute, Long> {
 
-    List<HubRoute> findAllByArrivalHubIdOrDepartureHubId(UUID arrivalHubId, UUID departureHubId);
+    @Query("SELECT r FROM HubRoute r WHERE r.arrivalHub.hubId = :arrivalHubId OR r.departureHub.hubId = :departureHubId")
+    List<HubRoute> findAllByArrivalHubIdOrDepartureHubId(
+            @Param("arrivalHubId") UUID arrivalHubId,
+            @Param("departureHubId") UUID departureHubId
+    );
+
     @Modifying
     @Query("""
         UPDATE HubRoute r

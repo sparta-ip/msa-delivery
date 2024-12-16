@@ -24,7 +24,7 @@ public class AuthConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/springdoc/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

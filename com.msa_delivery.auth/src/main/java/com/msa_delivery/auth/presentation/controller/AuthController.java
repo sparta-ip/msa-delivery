@@ -29,9 +29,8 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(authService.signUp(authRequestDto));
+    public ResponseEntity<ApiResponseDto<?>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
+        return authService.signUp(authRequestDto);
     }
 
     @PostMapping("/verify")
