@@ -123,9 +123,6 @@ public class UserService {
         ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryManagerByUserId = deliveryService.getDeliveryManagerByUserId(user.getUserId(), headerUserId, headerUsername, role);
         ApiResponseDto<GetUUIDDto> deliveryManagerBody = deliveryManagerByUserId.getBody();
 
-        log.info("$$$$$$$$deliveryByUserId.getBody().getData() : {}", deliveryManagerBody.getData());
-        log.info("$$$$$$$$message : {}", deliveryManagerBody.getMessage());
-
         if (Objects.requireNonNull(deliveryManagerBody).getStatus() == HttpStatus.OK.value() ||
                 (deliveryManagerBody.getData() != null &&
                         deliveryManagerBody.getData().getContent() != null &&
@@ -135,7 +132,7 @@ public class UserService {
 
             for (GetUUIDDto.UUIDListDto content : contentList) {
                 if (content != null && content.getDeliveryManagerId() != null) {
-                    deliveryService.softDeleteDeliveryManager(content.getDeliveryManagerId());
+                    deliveryService.softDeleteDeliveryManager(content.getDeliveryManagerId(), headerUserId, headerUsername, role);
                 }
             }
         }
