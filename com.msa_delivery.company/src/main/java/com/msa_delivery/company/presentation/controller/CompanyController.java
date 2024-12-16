@@ -31,7 +31,7 @@ public class CompanyController {
                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
         CompanyDto company = companyService.createCompany(request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "업체 생성이 완료되었습니다.", company)
+                CommonResponse.success(HttpStatus.CREATED.value(), "업체 생성이 완료되었습니다.", company)
         );
     }
 
@@ -43,7 +43,7 @@ public class CompanyController {
                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
         CompanyDto company = companyService.updateCompany(companyId, request, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "업체 수정이 완료되었습니다.", company)
+                CommonResponse.success(HttpStatus.OK.value(), "업체 수정이 완료되었습니다.", company)
         );
     }
 
@@ -54,7 +54,7 @@ public class CompanyController {
                                            @RequestHeader("X-Role") String role) throws AccessDeniedException {
         companyService.deleteCompany(companyId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "업체 삭제가 완료되었습니다.")
+                CommonResponse.success(HttpStatus.OK.value(), "업체 삭제가 완료되었습니다.", null)
         );
     }
 
@@ -65,7 +65,7 @@ public class CompanyController {
                                             @RequestHeader("X-Role") String role) {
         CompanyDto company = companyService.getCompanyById(companyId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "업체 상세 조회가 완료되었습니다.", company)
+                CommonResponse.success(HttpStatus.OK.value(), "업체 상세 조회가 완료되었습니다.", company)
         );
     }
 
@@ -81,7 +81,7 @@ public class CompanyController {
             Pageable pageable) {
         Page<CompanyDto> companies = companyService.getCompanies(type, search, managerId, hubId, userId, username, role, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", companies)
+                CommonResponse.success(HttpStatus.OK.value(), "검색 조회가 완료되었습니다.", companies)
         );
     }
 

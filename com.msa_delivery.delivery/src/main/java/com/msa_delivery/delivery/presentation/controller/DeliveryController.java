@@ -31,7 +31,7 @@ public class DeliveryController {
                                            @RequestHeader("X-Role") String role) {
         DeliveryCreateDto delivery = deliveryService.createDelivery(request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 생성이 완료되었습니다.", delivery)
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 생성이 완료되었습니다.", delivery)
         );
     }
 
@@ -43,7 +43,7 @@ public class DeliveryController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryDto delivery = deliveryService.updateDelivery(deliveryId, request, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 정보 수정이 완료되었습니다.", delivery)
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 정보 수정이 완료되었습니다.", delivery)
         );
     }
 
@@ -54,7 +54,7 @@ public class DeliveryController {
                                             @RequestHeader("X-Role") String role) throws AccessDeniedException {
         deliveryService.deleteDelivery(deliveryId, userId, username, role);
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                CommonResponse.success(HttpStatus.CREATED, "배송 정보 삭제가 완료되었습니다.")
+                CommonResponse.success(HttpStatus.CREATED.value(), "배송 정보 삭제가 완료되었습니다.", null)
         );
     }
 
@@ -65,7 +65,7 @@ public class DeliveryController {
                                              @RequestHeader("X-Role") String role) throws AccessDeniedException {
         DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "배송 상세 조회가 완료되었습니다.", delivery)
+                CommonResponse.success(HttpStatus.OK.value(), "배송 상세 조회가 완료되었습니다.", delivery)
         );
     }
 
@@ -88,7 +88,7 @@ public class DeliveryController {
                         receiverId, createdFrom, createdTo, userId, username, role, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                CommonResponse.success(HttpStatus.OK, "검색 조회가 완료되었습니다.", deliveries)
+                CommonResponse.success(HttpStatus.OK.value(), "검색 조회가 완료되었습니다.", deliveries)
         );
     }
 
