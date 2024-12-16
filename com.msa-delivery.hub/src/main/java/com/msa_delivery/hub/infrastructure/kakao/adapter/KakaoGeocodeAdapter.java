@@ -1,9 +1,9 @@
-package com.msa_delivery.hub.infrastrcture.kakao.adapter;
+package com.msa_delivery.hub.infrastructure.kakao.adapter;
 
 import com.msa_delivery.hub.domain.model.Location;
 import com.msa_delivery.hub.domain.port.GeoCodingPort;
-import com.msa_delivery.hub.infrastrcture.kakao.KaKaoMapClient;
-import com.msa_delivery.hub.infrastrcture.kakao.response.KaKaoGeoResponse;
+import com.msa_delivery.hub.infrastructure.kakao.KaKaoMapClient;
+import com.msa_delivery.hub.infrastructure.kakao.response.KaKaoGeoResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

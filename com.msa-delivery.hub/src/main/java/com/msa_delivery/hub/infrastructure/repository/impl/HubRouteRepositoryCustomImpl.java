@@ -1,4 +1,4 @@
-package com.msa_delivery.hub.infrastrcture.repository.impl;
+package com.msa_delivery.hub.infrastructure.repository.impl;
 
 import com.msa_delivery.hub.domain.model.HubRoute;
 import com.msa_delivery.hub.domain.repository.HubRouteRepositoryCustom;
@@ -50,4 +50,5 @@ public class HubRouteRepositoryCustomImpl extends QuerydslRepositorySupport impl
     public BooleanExpression isDeletedEq(Boolean isDeleted) {
         return isDeleted != null ? hubRoute.isDeleted.eq(isDeleted) : null;
     }
+
 }

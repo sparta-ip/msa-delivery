@@ -1,12 +1,12 @@
-package com.msa_delivery.hub.infrastrcture.kakao.adapter;
+package com.msa_delivery.hub.infrastructure.kakao.adapter;
 
 import com.msa_delivery.hub.domain.model.Location;
 import com.msa_delivery.hub.domain.model.RouteInfo;
 import com.msa_delivery.hub.domain.port.NavigationPort;
-import com.msa_delivery.hub.infrastrcture.kakao.KaKaoMapClient;
-import com.msa_delivery.hub.infrastrcture.kakao.response.KakaoDirectionsResponse;
-import com.msa_delivery.hub.infrastrcture.kakao.response.Route;
-import com.msa_delivery.hub.infrastrcture.kakao.response.Summary;
+import com.msa_delivery.hub.infrastructure.kakao.KaKaoMapClient;
+import com.msa_delivery.hub.infrastructure.kakao.response.KakaoDirectionsResponse;
+import com.msa_delivery.hub.infrastructure.kakao.response.Route;
+import com.msa_delivery.hub.infrastructure.kakao.response.Summary;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

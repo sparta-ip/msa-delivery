@@ -1,7 +1,6 @@
-package com.msa_delivery.hub.infrastrcture.repository.impl;
+package com.msa_delivery.hub.infrastructure.repository.impl;
 
 import com.msa_delivery.hub.domain.model.Hubs;
-import com.msa_delivery.hub.domain.model.QHubs;
 import com.msa_delivery.hub.domain.repository.HubRepositoryCustom;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLQuery;
@@ -20,10 +19,11 @@ import static org.springframework.util.StringUtils.hasText;
 public class HubRepositoryCustomImpl extends QuerydslRepositorySupport implements HubRepositoryCustom {
 
 
+
     public HubRepositoryCustomImpl() {
         super(Hubs.class);
     }
-
+//
     @Override
     public Page<Hubs> searchHubs(UUID hubId, String name, String address, Long hubManagerId, Boolean isDeleted, Pageable pageable) {
         JPQLQuery<Hubs> query = from(hubs)
@@ -60,5 +60,6 @@ public class HubRepositoryCustomImpl extends QuerydslRepositorySupport implement
 
     private BooleanExpression isDeletedEq(Boolean isDeleted) {
         return isDeleted != null ? hubs.isDeleted.eq(isDeleted) : null;
+
     }
 }
