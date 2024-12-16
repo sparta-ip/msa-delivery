@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -117,27 +118,24 @@ public class UserService {
                 -> new IllegalArgumentException("user not exist."));
 
         // delivery 삭제 요청
-//        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryByUserId = deliveryService.getDeliveryByUserId(user.getUserId(), headerUserId, headerUsername, role);
-//        ApiResponseDto<GetUUIDDto> deliveryBody = deliveryByUserId.getBody();
-//
-//        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", deliveryBody);
-//
-//        if (Objects.requireNonNull(deliveryBody).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(deliveryBody).getData().getDeliveryId().isEmpty()) {
-//            for (UUID uuid : deliveryBody.getData().getDeliveryId()) {
-//                deliveryService.softDeleteDelivery(uuid);
-//            }
-//        }
+
         // delivery manager 삭제 요청
-//        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryManagerByUserId = deliveryService.getDeliveryManagerByUserId(user.getUserId(), headerUserId, headerUsername, role);
-//        ApiResponseDto<GetUUIDDto> deliveryManagerBody = deliveryManagerByUserId.getBody();
-//
-//        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", deliveryManagerBody);
-//
-//        if (Objects.requireNonNull(deliveryManagerBody).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(deliveryManagerBody).getData().getDeliveryManagerId().isEmpty()) {
-//            for (Long deliveryManager : deliveryManagerBody.getData().getDeliveryManagerId()) {
-//                deliveryService.softDeleteDeliveryManager(deliveryManager);
-//            }
-//        }
+        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryManagerByUserId = deliveryService.getDeliveryManagerByUserId(user.getUserId(), headerUserId, headerUsername, role);
+        ApiResponseDto<GetUUIDDto> deliveryManagerBody = deliveryManagerByUserId.getBody();
+
+        if (Objects.requireNonNull(deliveryManagerBody).getStatus() == HttpStatus.OK.value() ||
+                (deliveryManagerBody.getData() != null &&
+                        deliveryManagerBody.getData().getContent() != null &&
+                        !deliveryManagerBody.getData().getContent().isEmpty())) {
+
+            List<GetUUIDDto.UUIDListDto> contentList = deliveryManagerBody.getData().getContent();
+
+            for (GetUUIDDto.UUIDListDto content : contentList) {
+                if (content != null && content.getDeliveryManagerId() != null) {
+                    deliveryService.softDeleteDeliveryManager(content.getDeliveryManagerId(), headerUserId, headerUsername, role);
+                }
+            }
+        }
         // company 삭제 요청
 
         // hub 삭제 요청
