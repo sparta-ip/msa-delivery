@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface HubRouteDomainService {
-
+     HubRoute findHubRouteByDepartureAndArrivalHubId(UUID departureHubId, UUID arrivalHubId);
      HubRoute getHubRouteById(UUID hubRouteId);
      List<HubRouteResponse> createHubRoute(String userId);
      void deleteRelatedRoutes(UUID hubId, String userId);

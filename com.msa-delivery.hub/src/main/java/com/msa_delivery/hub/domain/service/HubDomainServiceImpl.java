@@ -11,6 +11,9 @@ import com.msa_delivery.hub.domain.repository.HubReadRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -66,7 +69,7 @@ public class HubDomainServiceImpl implements HubDomainService {
             throw new IllegalArgumentException("이미 존재하는 허브 입니다.");
         }
     }
-
+    @CachePut(value = "hub", key = "#hubId")
     @Override
     public Hubs updateHub(UUID hubId, String name, String address, String username) {
         return hubReadRepository.findByHubId(hubId).map(hubs -> {
@@ -82,7 +85,7 @@ public class HubDomainServiceImpl implements HubDomainService {
     }
 
 
-
+    @CacheEvict(value = "hub", key = "#hubId")
     @Override
     public void deleteHubs(UUID hubId, String userId) {
         hubReadRepository.findByHubId(hubId).orElseThrow(() -> new IllegalArgumentException("허브를 찾을 수 없습니다."));
@@ -100,6 +103,7 @@ public class HubDomainServiceImpl implements HubDomainService {
         return hubReadRepository.findAllByIsDeletedFalseAndHubIdNot(hubId);
     }
 
+    @Cacheable(value = "hub", key = "#hubId")
     @Override
     public Hubs getHub(UUID hubId) {
         return hubReadRepository.findByHubId(hubId)
@@ -107,7 +111,10 @@ public class HubDomainServiceImpl implements HubDomainService {
     }
 
 
-
+    @Cacheable(
+            value = "hubSearch",
+            key = "#hubId + '_' + #name + '_' + #address + '_' + #hubManagerId + '_' + #isDeleted + '_' + #pageable.pageNumber + '_' + #pageable.pageSize"
+    )
     @Override
     public Page<Hubs> searchHubs(UUID hubId, String name, String address, Long hubManagerId, Boolean isDeleted, Pageable pageable) {
         return hubRepositoryCustom.searchHubs(hubId ,name, address, hubManagerId, isDeleted, pageable);

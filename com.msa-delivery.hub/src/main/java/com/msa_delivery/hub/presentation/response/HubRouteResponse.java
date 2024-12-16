@@ -14,8 +14,8 @@ public record HubRouteResponse(
         UUID hubRouteId,
         UUID departureHubId,
         UUID arrivalHubId,
-        double distance,
-        double duration
+        Integer distance,
+        Integer duration
 ) {
     public static HubRouteResponse from(HubRoute hubRoute) {
         return HubRouteResponse.builder()
