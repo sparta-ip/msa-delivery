@@ -128,16 +128,16 @@ public class UserService {
 //            }
 //        }
         // delivery manager 삭제 요청
-//        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryManagerByUserId = deliveryService.getDeliveryManagerByUserId(user.getUserId(), headerUserId, headerUsername, role);
-//        ApiResponseDto<GetUUIDDto> deliveryManagerBody = deliveryManagerByUserId.getBody();
-//
-//        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", deliveryManagerBody);
-//
-//        if (Objects.requireNonNull(deliveryManagerBody).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(deliveryManagerBody).getData().getDeliveryManagerId().isEmpty()) {
-//            for (Long deliveryManager : deliveryManagerBody.getData().getDeliveryManagerId()) {
-//                deliveryService.softDeleteDeliveryManager(deliveryManager);
-//            }
-//        }
+        ResponseEntity<ApiResponseDto<GetUUIDDto>> deliveryManagerByUserId = deliveryService.getDeliveryManagerByUserId(user.getUserId(), headerUserId, headerUsername, role);
+        ApiResponseDto<GetUUIDDto> deliveryManagerBody = deliveryManagerByUserId.getBody();
+
+        log.info("$$$$$$$$deliveryByUserId.getBody() : {}", deliveryManagerBody);
+
+        if (Objects.requireNonNull(deliveryManagerBody).getStatus() == HttpStatus.OK.value() || !Objects.requireNonNull(deliveryManagerBody).getData().getDeliveryManagerId().isEmpty()) {
+            for (Long deliveryManager : deliveryManagerBody.getData().getDeliveryManagerId()) {
+                deliveryService.softDeleteDeliveryManager(deliveryManager);
+            }
+        }
         // company 삭제 요청
 
         // hub 삭제 요청
