@@ -2,7 +2,10 @@ package com.msa_delivery.user.infrastructure.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +49,7 @@ import java.util.UUID;
  */
 
 @Getter
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetUUIDDto {
 
@@ -61,6 +65,9 @@ public class GetUUIDDto {
     private List<UUIDListDto> content;
 
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class UUIDListDto {
         private Long deliveryManagerId;
