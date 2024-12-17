@@ -120,7 +120,7 @@ public class DeliveryRouteService {
         UUID arrivalId = route.getArrivalId();
 
         // 권한 확인
-        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
+//        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
 
         return DeliveryRouteDto.create(route);
     }

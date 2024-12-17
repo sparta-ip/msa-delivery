@@ -2,6 +2,7 @@ package com.msa_delivery.delivery.application.service;
 
 import com.msa_delivery.delivery.application.dto.DeliveryCreateDto;
 import com.msa_delivery.delivery.application.dto.DeliveryDto;
+import com.msa_delivery.delivery.application.dto.DeliveryReadyDto;
 import com.msa_delivery.delivery.application.util.CheckRole;
 import com.msa_delivery.delivery.domain.model.*;
 import com.msa_delivery.delivery.domain.repository.DeliveryManagerRepository;
@@ -50,7 +51,6 @@ public class DeliveryService {
     }
 
     // 배송 생성 로직 분리
-    @Transactional
     private Delivery createDeliveryEntity(DeliveryRequest request, String username) {
         UUID orderId = request.getOrderId();
         Long receiverId = request.getReceiverId();
@@ -75,7 +75,6 @@ public class DeliveryService {
     }
 
     // 배송 경로 생성 로직 분리
-    @Transactional
     private DeliveryRoute createDeliveryRouteEntity(DeliveryRequest request, Delivery delivery, String userId, String username, String role) {
         UUID departureId = request.getDepartureId();
         UUID arrivalId = request.getArrivalId();
@@ -176,7 +175,7 @@ public class DeliveryService {
     }
 
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliveryById(UUID deliveryId, String userId, String username, String role) throws AccessDeniedException {
+    public DeliveryReadyDto getDeliveryById(UUID deliveryId, String userId, String username, String role) throws AccessDeniedException {
         // 기존 데이터 조회
         Delivery delivery = deliveryRepository.findByIdAndIsDeleteFalse(deliveryId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 배송을 찾을 수 없습니다."));
@@ -187,7 +186,7 @@ public class DeliveryService {
         // 권한 확인
 //        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
 
-        return DeliveryDto.create(delivery);
+        return DeliveryReadyDto.create(delivery);
     }
 
     @Transactional(readOnly = true)

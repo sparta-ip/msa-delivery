@@ -3,6 +3,7 @@ package com.msa_delivery.delivery.presentation.controller;
 import com.msa_delivery.delivery.application.dto.CommonResponse;
 import com.msa_delivery.delivery.application.dto.DeliveryCreateDto;
 import com.msa_delivery.delivery.application.dto.DeliveryDto;
+import com.msa_delivery.delivery.application.dto.DeliveryReadyDto;
 import com.msa_delivery.delivery.application.service.DeliveryService;
 import com.msa_delivery.delivery.presentation.request.DeliveryRequest;
 import com.msa_delivery.delivery.presentation.request.DeliveryUpdateRequest;
@@ -66,7 +67,7 @@ public class DeliveryController {
                                              @RequestHeader("X-User_Id") String userId,
                                              @RequestHeader("X-Username") String username,
                                              @RequestHeader("X-Role") String role) throws AccessDeniedException {
-        DeliveryDto delivery = deliveryService.getDeliveryById(deliveryId, userId, username, role);
+        DeliveryReadyDto delivery = deliveryService.getDeliveryById(deliveryId, userId, username, role);
         return ResponseEntity.status(HttpStatus.OK).body(
                 CommonResponse.success(HttpStatus.OK.value(), "배송 상세 조회가 완료되었습니다.", delivery)
         );
