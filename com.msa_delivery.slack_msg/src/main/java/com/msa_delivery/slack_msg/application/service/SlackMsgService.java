@@ -33,7 +33,7 @@ public class SlackMsgService {
 
     private final SlackFeignClient slackFeignClient;
 
-    @Value("${slack.bot.token}")
+    @Value("${slack.token}")
     private String slackBotToken;
 
     @Transactional
