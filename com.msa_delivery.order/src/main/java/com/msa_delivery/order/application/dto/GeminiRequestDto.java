@@ -5,13 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Collections;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class GeminiRequestDto {
 
-    private String prompt; // AI에 보낼 자연어 프롬프트
+    private List<Content> contents; // contents 필드 추가
 
     public static GeminiRequestDto fromOrderData(
         String productInfo,
@@ -37,6 +40,25 @@ public class GeminiRequestDto {
                 "- 최종 발송 시한: 12월 10일 09:00",
             productInfo, requestDetails, departure, waypoints, destination
         );
-        return new GeminiRequestDto(prompt);
+
+        Part part = new Part(prompt);
+        Content content = new Content(Collections.singletonList(part));
+        return new GeminiRequestDto(Collections.singletonList(content));
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Content {
+        private List<Part> parts;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Part {
+        private String text;
     }
 }

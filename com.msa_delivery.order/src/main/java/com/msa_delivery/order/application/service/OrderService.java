@@ -16,10 +16,13 @@ import com.msa_delivery.order.domain.model.Order;
 import com.msa_delivery.order.domain.model.OrderStatus;
 import com.msa_delivery.order.domain.repository.OrderRepository;
 import com.msa_delivery.order.domain.repository.OrderRepositoryCustom;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -114,7 +117,10 @@ public class OrderService {
 
                 // 배송 요청 및 AI 예측
                 DeliveryResponseDto deliveryResponseDto = deliveryService.createDelivery(savedOrder, receiverData, supplierData);
-                order.addDeliveryId(deliveryResponseDto.getDelivery().getDelivery_id());
+                savedOrder.addDeliveryId(deliveryResponseDto.getDelivery().getDelivery_id());
+                orderRepository.save(savedOrder); // delivery_id 업데이트 후 다시 저장
+
+                log.info("saved order : " + savedOrder.getDelivery_id());
 
                 log.info("배송 요청 및 AI 예측");
 
@@ -326,16 +332,52 @@ public class OrderService {
         CompanyDataDto receiverData, HubDataDto supplierHubData, HubDataDto receiverHubData,
         String finalDeliveryTime) {
         try {
-            // 응답에서 날짜 및 시간 추출 (예: "12월 10일 09:00")
-            String dateStr = finalDeliveryTime.replace("- 최종 발송 시한: ", "").trim();
+            log.info("sendSlackMessage order: " + order.getDelivery_id());
 
-            // "12월 10일 09:00"을 LocalDateTime으로 변환
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM월 dd일 HH:mm");
-            LocalDateTime finalDeliveryDateTime = LocalDateTime.parse(dateStr, formatter);
+            // 날짜 포맷 검증 및 파싱
+            LocalDateTime finalDeliveryDateTime = null;
+
+            // 정규 표현식으로 날짜 패턴 추출
+            Pattern pattern = Pattern.compile("(\\d{2})월 (\\d{2})일 (\\d{2}):(\\d{2})");
+            Matcher matcher = pattern.matcher(finalDeliveryTime);
+
+            if (matcher.find()) {
+                // 날짜 정보가 있을 경우만 파싱
+                String month = matcher.group(1);
+                String day = matcher.group(2);
+                String hour = matcher.group(3);
+                String minute = matcher.group(4);
+
+                // 현재 연도 가져오기
+                int currentYear = LocalDate.now().getYear();
+
+                // LocalDateTime 구성
+                finalDeliveryDateTime = LocalDateTime.of(
+                    currentYear, Integer.parseInt(month), Integer.parseInt(day),
+                    Integer.parseInt(hour), Integer.parseInt(minute)
+                );
+            } else {
+                log.warn("유효한 날짜 형식이 감지되지 않았습니다: {}", finalDeliveryTime);
+                finalDeliveryDateTime = LocalDateTime.now().plusDays(1).withHour(9).withMinute(0);
+            }
+
+            // Null 체크 추가
+            String orderId = (order != null && order.getOrder_id() != null) ? String.valueOf(
+                order.getOrder_id()) : "N/A";
+            String slackId = (receiverData != null && receiverData.getSlack_id() != null) ? receiverData.getSlack_id() : "N/A";
+            String productName = (productData != null && productData.getName() != null) ? productData.getName() : "N/A";
+            String request = (order != null && order.getRequest() != null) ? order.getRequest() : "없음";
+            String supplierHubName = (supplierHubData != null && supplierHubData.getHub_name() != null) ? supplierHubData.getHub_name() : "N/A";
+            String receiverHubName = (receiverHubData != null && receiverHubData.getHub_name() != null) ? receiverHubData.getHub_name() : "N/A";
+            String receiverAddress = (receiverData != null && receiverData.getAddress() != null) ? receiverData.getAddress() : "N/A";
+            String deliveryId = (order != null && order.getDelivery_id() != null) ? String.valueOf(
+                order.getDelivery_id()) : "N/A";
+
+            log.info("orderId: " + orderId + ", slackId: " + slackId + ", productName: " + productName + ", request: " + request + ", supplierHubName: " + supplierHubName + ", receiverHubName: " + receiverHubName + ", deliveryId: " + deliveryId);
 
             String slackMessage = String.format(
                 "**주문 번호**: %s\n" +
-                    "**주문자 정보**: %s / %s\n" +
+                    "**주문자 정보**: %s\n" +
                     "**상품 정보**: %s\n" +
                     "**요청 사항**: %s\n" +
                     "**발송지**: %s\n" +
@@ -343,15 +385,15 @@ public class OrderService {
                     "**도착지**: %s\n" +
                     "**배송 ID**: %s\n\n" +
                     "위 내용을 기반으로 도출된 최종 발송 시한은 %s 입니다.",
-                order.getOrder_id(),
-                receiverData.getSlack_id(),
-                productData.getName() + " " + order.getQuantity() + "박스",
-                order.getRequest() + "까지 보내주세요!",
-                supplierHubData.getName(),
-                receiverHubData.getName(),
-                receiverData.getAddress(),
-                order.getDelivery_id(),
-                finalDeliveryTime
+                orderId,
+                slackId,
+                productName + " " + (order != null ? order.getQuantity() : "0") + "박스", // quantity도 체크
+                request + "까지 보내주세요!",
+                supplierHubName,
+                receiverHubName,
+                receiverAddress,
+                deliveryId,
+                finalDeliveryDateTime.format(DateTimeFormatter.ofPattern("MM월 dd일 HH:mm"))
             );
 
             // Slack 메시지 전송 (SlackMsg 클라이언트 호출)
@@ -363,6 +405,8 @@ public class OrderService {
             log.error("Slack 메시지 전송 중 오류 발생: {}", e.getMessage());
         }
     }
+
+
 
     // 특정 주문과 관련 있는 업체의 허브 ID 가져오기
     @Transactional(readOnly = true)

@@ -32,7 +32,7 @@ public class SlackMsg extends BaseEntity{
     @Column(nullable = false)
     private String receiver_slack_id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2000)
     private String msg;
 
     @Column(nullable = false)
