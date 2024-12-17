@@ -99,7 +99,7 @@
 
 ## 실행방법
 
-- Docker
+- git clone/zip 다운로드 후 프로젝트 root 에서 `docker compose up -d` 로 실행
 
 <br /><br />
 
