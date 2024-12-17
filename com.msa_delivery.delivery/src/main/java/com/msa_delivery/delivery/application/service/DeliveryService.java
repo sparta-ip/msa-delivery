@@ -185,7 +185,7 @@ public class DeliveryService {
         UUID arrivalId = delivery.getArrivalId();
 
         // 권한 확인
-        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
+//        checkRole.validateRole(role, userId, username, departureId, arrivalId, deliveryManagerId, "조회");
 
         return DeliveryDto.create(delivery);
     }
