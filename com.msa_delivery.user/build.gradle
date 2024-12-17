@@ -110,9 +110,9 @@ tasks.register('setDocs') {
 			into "build/resources/main/static/springdoc"
 			rename { String fileName ->
 				if (fileName.endsWith('.json')) {
-					return fileName.replace('.json', '-auth-service.json')
+					return fileName.replace('.json', '-user-service.json')
 				} else if (fileName.endsWith('.yaml')) {
-					return fileName.replace('.yaml', '-auth-service.yml')
+					return fileName.replace('.yaml', '-user-service.yml')
 				}
 				return fileName
 			}
