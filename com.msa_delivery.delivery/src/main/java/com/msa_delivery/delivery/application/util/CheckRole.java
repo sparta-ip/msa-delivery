@@ -21,7 +21,7 @@ public class CheckRole {
         switch (role) {
             case "MASTER":
                 // MASTER 는 모든 작업 가능, 권한 검증 필요 없음
-                break;
+                return;
 
             case "HUB_MANAGER":
                 if ("수정".equals(action) || "삭제".equals(action) || "조회".equals(action)) {
