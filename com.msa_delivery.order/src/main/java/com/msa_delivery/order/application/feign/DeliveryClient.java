@@ -7,9 +7,7 @@ import com.msa_delivery.order.application.dto.ResponseDto;
 import com.msa_delivery.order.infrastructure.configuration.FeignClientConfig;
 import java.util.List;
 import java.util.UUID;
-import org.hibernate.query.Page;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface DeliveryClient {
 
     @PostMapping("/api/deliveries")
-    ResponseEntity<ResponseDto<DeliveryResponseDto>> createDelivery(@RequestBody DeliveryRequestDto deliveryRequestDto);
+    ResponseDto<DeliveryResponseDto> createDelivery(@RequestBody DeliveryRequestDto deliveryRequestDto);
 
     // 특정 주문의 배송 담당자 ID 목록 조회
     @GetMapping("/api/deliveries/delivery-managers")

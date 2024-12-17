@@ -40,6 +40,7 @@ public class SlackMsgService {
     public ResponseDto<SlackMsgDataDto> createSlackMsg(
         SlackMsgRequestDto.Create slackMsgRequestDto) {
 
+        log.info("SlackMsg Service : Create SlackMsg");
         try {
             // Slack API로 메시지 전송
             SlackRequestDto slackRequestDto = new SlackRequestDto(

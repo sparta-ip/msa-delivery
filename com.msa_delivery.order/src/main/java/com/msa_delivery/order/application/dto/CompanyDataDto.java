@@ -1,6 +1,5 @@
 package com.msa_delivery.order.application.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Data;

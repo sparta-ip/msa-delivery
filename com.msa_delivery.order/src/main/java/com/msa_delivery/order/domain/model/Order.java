@@ -26,7 +26,7 @@ public class Order extends BaseEntity {
     @Id
     private UUID order_id;
 
-    @Column(nullable = false)
+    @Column
     private UUID delivery_id;
 
     @Column(nullable = false)
