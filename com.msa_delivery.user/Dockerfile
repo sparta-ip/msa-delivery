@@ -1,14 +1,11 @@
-# Base image
-FROM openjdk:17-jdk-slim
-
-# Set the working directory
+FROM gradle:7.6.1-jdk17 AS builder
 WORKDIR /app
+COPY . .
+# gradle 권한 설정 및 캐시 정리
+RUN chmod +x ./gradlew
+RUN ./gradlew clean bootJar -x test --no-daemon
 
-# Copy the jar file
-COPY build/libs/*SNAPSHOT.jar user-service.jar
-
-# Expose the service port
-EXPOSE 19095
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "user-service.jar"]
+FROM openjdk:17-slim
+WORKDIR /app
+COPY --from=builder /app/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
