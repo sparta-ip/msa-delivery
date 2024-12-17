@@ -25,12 +25,6 @@ spring:
       cache-null-values: false
       use-key-prefix: true
       key-prefix: "hub::"
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      timeout: 3000
-      database: 0
 
 eureka:
   client:

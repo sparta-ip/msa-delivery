@@ -152,7 +152,6 @@ services:
       - zipkin
       - postgres-db
       - eureka-service
-      - redis
   # Order Service
   order-service:
     build:
@@ -180,7 +179,6 @@ services:
       - zipkin
       - postgres-db
       - eureka-service
-      - redis
   # Delivery Service
   delivery-service:
     build:
@@ -207,7 +205,6 @@ services:
       - zipkin
       - postgres-db
       - eureka-service
-      - redis
   # Slack Service
   slack-service:
     build:
@@ -261,7 +258,6 @@ services:
     depends_on:
       - zipkin
       - postgres-db
-      - redis
       - eureka-service
 
 volumes:

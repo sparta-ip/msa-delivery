@@ -33,9 +33,3 @@ management:
     components:
       circuitbreaker:
         enabled: true
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      timeout: 3000
-      database: 0
