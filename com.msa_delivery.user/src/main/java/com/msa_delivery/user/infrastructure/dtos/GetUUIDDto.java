@@ -1,14 +1,12 @@
 package com.msa_delivery.user.infrastructure.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * DeliveryManager

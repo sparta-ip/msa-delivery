@@ -1,8 +1,6 @@
 package com.msa_delivery.user.presentation.controller;
 
-import com.msa_delivery.user.application.dtos.ApiResponseDto;
-import com.msa_delivery.user.application.dtos.UserRequestDto;
-import com.msa_delivery.user.application.dtos.UserSearchDto;
+import com.msa_delivery.user.application.dtos.*;
 import com.msa_delivery.user.application.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -24,15 +22,15 @@ public class UserController {
 
     // TODO : @RequestHeader도 dto로 매핑 시켜서 받을 수 있다. 추후 refactoring.
     @GetMapping
-    public ResponseEntity<ApiResponseDto<Page<?>>> searchUsers(@ModelAttribute UserSearchDto userSearchDto,
-                                                                                   @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
-                                                                                   @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
-                                                                                   @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {
+    public ResponseEntity<ApiResponseDto<Page<? extends UserDetailResponseDto>>> searchUsers(@ModelAttribute UserSearchDto userSearchDto,
+                                                                                             @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
+                                                                                             @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
+                                                                                             @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {
         return userService.searchUsers(userSearchDto, userId, role);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponseDto<?>> getUser(@PathVariable Long userId,
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> getUser(@PathVariable Long userId,
                                                                              @RequestHeader(value = "X-User_Id", required = true) @NotBlank String headerUserId,
                                                                              @RequestHeader(value = "X-Username", required = true) @NotBlank String username,
                                                                              @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {
@@ -40,7 +38,7 @@ public class UserController {
     }
 
     @PutMapping("/{username}")
-    public ResponseEntity<ApiResponseDto<?>> updateUser(@Valid @RequestBody UserRequestDto userRequestDto,
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> updateUser(@Valid @RequestBody UserRequestDto userRequestDto,
                                                                                 @PathVariable String username,
                                                                                 @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
                                                                                 @RequestHeader(value = "X-Username", required = true) @NotBlank String headerUsername,
@@ -49,7 +47,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{username}")
-    public ResponseEntity<ApiResponseDto<?>> softDeleteUser(@PathVariable String username,
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> softDeleteUser(@PathVariable String username,
                                                             @RequestHeader(value = "X-User_Id", required = true) @NotBlank String userId,
                                                             @RequestHeader(value = "X-Username", required = true) @NotBlank String headerUsername,
                                                             @RequestHeader(value = "X-Role", required = true) @NotBlank String role) {

@@ -19,7 +19,7 @@ public class UserResponseDto {
     private LocalDateTime updatedAt;
     private String updatedBy;
 
-    public static UserResponseDto fromEntity(User user) {
+    public static UserResponseDto from(User user) {
         return UserResponseDto.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())

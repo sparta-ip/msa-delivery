@@ -25,13 +25,13 @@ public class AuthController {
     private final InitializeEntityService initializeEntityService;
 
     @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponseDto<?>> signIn(@RequestBody AuthRequestDto authRequestDto
+    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signIn(@RequestBody AuthRequestDto authRequestDto
     ) {
         return authService.signIn(authRequestDto);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<ApiResponseDto<?>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
+    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signUp(@Valid @RequestBody AuthRequestDto authRequestDto) {
         return authService.signUp(authRequestDto);
     }
 

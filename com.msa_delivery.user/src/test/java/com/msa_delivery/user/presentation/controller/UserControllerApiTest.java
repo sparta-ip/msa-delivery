@@ -71,9 +71,6 @@ class UserControllerApiTest {
     @MockitoBean
     private AuthService authService;
 
-//    @MockitoBean
-//    private DeliveryClient deliveryClient;
-
     @BeforeEach
     @Transactional
     @Rollback
