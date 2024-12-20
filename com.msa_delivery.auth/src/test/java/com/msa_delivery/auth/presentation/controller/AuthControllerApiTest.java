@@ -5,16 +5,11 @@ import com.epages.restdocs.apispec.ResourceDocumentation;
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msa_delivery.auth.application.dtos.AuthRequestDto;
-import com.msa_delivery.auth.application.service.AuthService;
 import com.msa_delivery.auth.domain.entity.User;
 import com.msa_delivery.auth.domain.entity.UserRoleEnum;
 import com.msa_delivery.auth.domain.repository.UserRepository;
-import org.aspectj.lang.annotation.Before;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,7 +34,8 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 @SpringBootTest
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
-@ActiveProfiles("local")
+//@Import(MockEurekaConfig.class)
+@ActiveProfiles("dev")
 class AuthControllerApiTest {
 
     @Autowired

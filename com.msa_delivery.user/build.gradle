@@ -86,7 +86,8 @@ compileJava {
 openapi3 {
 	servers = [
 			{
-				url = 'http://localhost:19091'
+				url = 'http://eureka-service:19091'
+//				url = 'http://localhost:19091'
 			}
 	]
 	title = 'USER API'
