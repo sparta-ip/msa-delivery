@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  eureka-service:
+    build:
+      context: ./com.msa_delivery.eureka # eureka-service 디렉토리 경로
+      dockerfile: Dockerfile
+    ports:
+      - "19090:19090"
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://eureka-service:19090/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always # 항상 재시작
+
+  gateway-service:
+    build:
+      context: ./com.msa_delivery.gateway # gateway-service 디렉토리 경로
+      dockerfile: Dockerfile
+    ports:
+      - "19091:19091" # Expose와 일치
+    networks:
+      - my-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://eureka-service:19091/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    restart: on-failure:5 # 비정상 종료 시 최대 5회 재시작
+
+networks:
+  my-network:
+    driver: bridge
