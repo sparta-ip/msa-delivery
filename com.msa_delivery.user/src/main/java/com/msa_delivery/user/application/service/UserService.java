@@ -1,9 +1,6 @@
 package com.msa_delivery.user.application.service;
 
-import com.msa_delivery.user.application.dtos.ApiResponseDto;
-import com.msa_delivery.user.application.dtos.UserRequestDto;
-import com.msa_delivery.user.application.dtos.UserResponseDto;
-import com.msa_delivery.user.application.dtos.UserSearchDto;
+import com.msa_delivery.user.application.dtos.*;
 import com.msa_delivery.user.domain.entity.User;
 import com.msa_delivery.user.domain.entity.UserRoleEnum;
 import com.msa_delivery.user.domain.repository.UserRepository;
@@ -49,7 +46,7 @@ public class UserService {
 
     @CircuitBreaker(name = "searchUsersCircuitBreaker", fallbackMethod = "fallbackSearchUsers")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseDto<Page<?>>> searchUsers(UserSearchDto userSearchDto, String userId, String userRole) {
+    public ResponseEntity<ApiResponseDto<Page<? extends UserDetailResponseDto>>> searchUsers(UserSearchDto userSearchDto, String userId, String userRole) {
         Long longUserId = Long.valueOf(userId);
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -60,7 +57,7 @@ public class UserService {
 
     @CircuitBreaker(name = "getUserCircuitBreaker", fallbackMethod = "fallbackGetUsers")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponseDto<?>> getUser(Long userId, String headerUserId, String role) {
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> getUser(Long userId, String headerUserId, String role) {
         Long longHeaderUserId = Long.valueOf(headerUserId);
 
         if (!role.equals(UserRoleEnum.MASTER.toString()) && userId.equals(longHeaderUserId)) {
@@ -76,13 +73,13 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponseDto.response(HttpStatus.OK.value(),
                         "조회에 성공하였습니다.",
-                        UserResponseDto.fromEntity(user)));
+                        UserResponseDto.from(user)));
     }
 
     @CircuitBreaker(name = "updateUserCircuitBreaker", fallbackMethod = "fallbackUpdateUser")
     @Retry(name = "defaultRetry")
     @Transactional
-    public ResponseEntity<ApiResponseDto<?>> updateUser(UserRequestDto userRequestDto, String username, String userId, String headerUsername, String role) {
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> updateUser(UserRequestDto userRequestDto, String username, String userId, String headerUsername, String role) {
         checkIsMaster(role);
         verifyUserToAuth(userId, headerUsername, role);
 
@@ -95,19 +92,19 @@ public class UserService {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(ApiResponseDto.response(HttpStatus.OK.value(),
                             "유저 정보 수정에 성공하였습니다.",
-                            UserResponseDto.fromEntity(user.updateIfPasswordIn(userRequestDto, headerUsername, encodedPassword))));
+                            UserResponseDto.from(user.updateIfPasswordIn(userRequestDto, headerUsername, encodedPassword))));
         } else {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(ApiResponseDto.response(HttpStatus.OK.value(),
                             "유저 정보 수정에 성공하였습니다.",
-                            UserResponseDto.fromEntity(user.update(userRequestDto, headerUsername))));
+                            UserResponseDto.from(user.update(userRequestDto, headerUsername))));
         }
     }
 
     @CircuitBreaker(name = "softDeleteUserCircuitBreaker", fallbackMethod = "fallbackSoftDeleteUser")
     @Retry(name = "defaultRetry")
     @Transactional
-    public ResponseEntity<ApiResponseDto<?>> softDeleteUser(String username, String headerUserId, String headerUsername, String role) {
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> softDeleteUser(String username, String headerUserId, String headerUsername, String role) {
         checkIsMaster(role);
         verifyUserToAuth(headerUserId, headerUsername, role);
         /**
@@ -147,7 +144,7 @@ public class UserService {
                         null));
     }
 
-    public ResponseEntity<ApiResponseDto<Page<?>>> fallbackSearchUsers(UserSearchDto userSearchDto, String userId, String userRole, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<Page<? extends UserDetailResponseDto>>> fallbackSearchUsers(UserSearchDto userSearchDto, String userId, String userRole, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -155,7 +152,7 @@ public class UserService {
                 .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<?>> fallbackGetUsers(Long userId, String headerUserId, String role, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> fallbackGetUsers(Long userId, String headerUserId, String role, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -163,7 +160,7 @@ public class UserService {
                 .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<?>> fallbackUpdateUser(UserRequestDto userRequestDto, String username, String userId, String headerUsername, String role, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> fallbackUpdateUser(UserRequestDto userRequestDto, String username, String userId, String headerUsername, String role, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -171,7 +168,7 @@ public class UserService {
                 .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<?>> fallbackSoftDeleteUser(String username, String userId, String headerUsername, String role, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<? extends UserResponseDto>> fallbackSoftDeleteUser(String username, String userId, String headerUsername, String role, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;

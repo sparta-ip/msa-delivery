@@ -35,7 +35,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,7 +49,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 @SpringBootTest
 @AutoConfigureRestDocs
 @AutoConfigureMockMvc
-@ActiveProfiles("local")
+@ActiveProfiles("dev")
 class UserControllerApiTest {
 
     @Autowired
@@ -70,9 +69,6 @@ class UserControllerApiTest {
 
     @MockitoBean
     private AuthService authService;
-
-//    @MockitoBean
-//    private DeliveryClient deliveryClient;
 
     @BeforeEach
     @Transactional

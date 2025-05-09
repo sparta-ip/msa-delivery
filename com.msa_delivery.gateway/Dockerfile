@@ -1,5 +1,10 @@
-# 빌드 스테이지
-FROM eclipse-temurin:17 AS builder
+# Base image
+FROM openjdk:17-jdk-slim
+
+# curl 설치
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
+# Set the working directory
 WORKDIR /app
 
 # 먼저 Gradle 파일들만 복사

@@ -15,7 +15,7 @@ public class AuthResponseDto {
     @JsonProperty("slack_id")
     private String slackId;
 
-    public static AuthResponseDto fromEntity(User user) {
+    public static AuthResponseDto from(User user) {
         return AuthResponseDto.builder()
                 .username(user.getUsername())
                 .role(user.getRole().toString())

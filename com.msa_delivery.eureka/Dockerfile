@@ -1,5 +1,10 @@
-# 빌드 스테이지
-FROM eclipse-temurin:17 AS builder
+# Base image
+FROM openjdk:17-jdk-slim
+
+# curl 설치
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
+# Set the working directory
 WORKDIR /app
 
 # 먼저 Gradle 파일들만 복사
@@ -15,11 +20,6 @@ RUN ./gradlew dependencies
 # 나머지 소스 코드 복사
 COPY src src
 
-# 최종 빌드
-RUN ./gradlew bootJar
 
-# 실행 스테이지
-FROM eclipse-temurin:17-jre
-WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application
+ENTRYPOINT ["java", "-jar", "eureka-service.jar"]

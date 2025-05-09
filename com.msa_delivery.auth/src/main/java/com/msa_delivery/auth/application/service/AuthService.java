@@ -58,7 +58,7 @@ public class AuthService {
     // TODO : MASTER 권한의 경우 추가 키가 필요하도록 설정. (실제론 관리자가 허락해줄때까지 대기하거나 추가 정보 등이 필요하다거나, DB에 key값을 hash로 저장하여 특정 시간에 업데이트 되는 값을 사용하도록 해야할듯.)
     @CircuitBreaker(name = "signUpCircuitBreaker", fallbackMethod = "fallbackSignUp")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<?>> signUp(AuthRequestDto userRequestDto) {
+    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signUp(AuthRequestDto userRequestDto) {
         if (userRepository.existsByUsername(userRequestDto.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
@@ -79,12 +79,12 @@ public class AuthService {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseDto.response(HttpStatus.CREATED.value(),
                         "회원가입이 완료되었습니다.",
-                        AuthResponseDto.fromEntity(user)));
+                        AuthResponseDto.from(user)));
     }
 
     @CircuitBreaker(name = "signInCircuitBreaker", fallbackMethod = "fallbackSignIn")
     @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<?>> signIn(AuthRequestDto authRequestDto) {
+    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signIn(AuthRequestDto authRequestDto) {
         User user = userRepository.findByUsername(authRequestDto.getUsername()).orElseThrow(()
                 -> new IllegalArgumentException("Please check username or password"));
 
@@ -102,24 +102,25 @@ public class AuthService {
     public Boolean verifyUser(VerifyUserDto verifyUserDto) {
         try {
             Long longUserId = Long.valueOf(verifyUserDto.getUserId());
-            User user = userRepository.findById(longUserId).orElseThrow(()
-                    -> new IllegalArgumentException("Please check your id"));
+            User user = userRepository.findById(longUserId).orElseThrow(() 
+                    -> new IllegalArgumentException("User not found with id: " + longUserId));
 
-            if (!user.getUsername().equals(verifyUserDto.getUsername()) || !user.getRole().toString().equals(verifyUserDto.getRole())) {
+            if (!isUserCredentialsValid(user, verifyUserDto)) {
+                log.info("User details mismatch for ID: {}", verifyUserDto.getUserId());
                 return false;
             }
+
+            return true;
         } catch (NumberFormatException e) {
-            log.info("Invalid userId format: {}", e.getMessage());
+            log.info("Invalid userId format: {}", verifyUserDto.getUserId());
             return false;
         } catch (IllegalArgumentException e) {
             log.info(e.getMessage());
             return false;
         } catch (Exception e) {
-            log.info("Unexpected error: {}", e.getMessage());
+            log.error("Unexpected error during user verification: {}", e.getMessage(), e);
             return false;
         }
-
-        return true;
     }
 
     public String createAccessToken(User user) {
@@ -134,7 +135,14 @@ public class AuthService {
                 .compact();
     }
 
-    public ResponseEntity<ApiResponseDto<?>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
+    private boolean isUserCredentialsValid(User user, VerifyUserDto verifyUserDto) {
+        boolean usernameMatches = user.getUsername().equals(verifyUserDto.getUsername());
+        boolean roleMatches = user.getRole().toString().equals(verifyUserDto.getRole());
+        return usernameMatches && roleMatches;
+    }
+
+
+    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
@@ -143,7 +151,7 @@ public class AuthService {
                 .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
     }
 
-    public ResponseEntity<ApiResponseDto<?>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
+    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
                 ? HttpStatus.SERVICE_UNAVAILABLE
                 : HttpStatus.BAD_REQUEST;
