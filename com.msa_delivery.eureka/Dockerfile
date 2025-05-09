@@ -7,11 +7,19 @@ RUN apt-get update && apt-get install -y curl && apt-get clean
 # Set the working directory
 WORKDIR /app
 
-# Copy the jar file
-COPY build/libs/*SNAPSHOT.jar eureka-service.jar
+# 먼저 Gradle 파일들만 복사
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle gradle
 
-# Expose the service port
-EXPOSE 19090
+# Gradle 실행 권한 설정
+RUN chmod +x gradlew
+
+# 의존성 다운로드를 위한 초기 빌드
+RUN ./gradlew dependencies
+
+# 나머지 소스 코드 복사
+COPY src src
+
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "eureka-service.jar"]

@@ -1,0 +1,89 @@
+server:
+  port: ${GATEWAY_PORT}
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: gateway-service
+  profiles:
+    active: local
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+        - id: slack-msg-service
+          uri: lb://slack-msg-service
+          predicates:
+            - Path=/api/slack/messages/**
+        - id: company-service
+          uri: lb://company-service
+          predicates:
+            - Path=/api/companies/**
+            - Path=/api/products/**
+        - id: delivery-service
+          uri: lb://delivery-service
+          predicates:
+            - Path=/api/deliveries/**
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**, /springdoc/openapi3-auth-service.json
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: authCircuitBreaker
+                fallbackUri: forward:/api/fallback
+                statusCodes:
+                  - 500
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**, /springdoc/openapi3-user-service.json
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: userCircuitBreaker
+                fallbackUri: forward:/api/fallback
+                statusCodes:
+                  - 500
+        - id: hub-service
+          uri: lb://hub-service
+          predicates:
+            - Path=/api/hubs/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: hubServiceCircuitBreaker
+                fallbackUri: forward:/fail
+      discovery:
+        locator:
+          enabled: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+
+management:
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URL}
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    components:
+      circuitbreaker:
+        enabled: true
+
+service:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}

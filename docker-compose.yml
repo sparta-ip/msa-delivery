@@ -1,0 +1,265 @@
+
+networks:
+  msa-network:
+    driver: bridge
+
+
+services:
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+
+
+  # PostgreSQL Database
+  postgres-db:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    networks:
+      - msa-network
+    environment:
+      - POSTGRES_DB=msa_delivery
+      - POSTGRES_USER=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+
+  # Redis
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - msa-network
+    volumes:
+      - redis-data:/data
+
+  # Eureka Service
+  eureka-service:
+    build:
+      context: com.msa_delivery.eureka
+      dockerfile: Dockerfile
+    ports:
+      - "${EUREKA_PORT}:${EUREKA_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - SERVER_PORT=${EUREKA_PORT}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+
+  # Gateway Service
+  gateway-service:
+    build:
+      context: com.msa_delivery.gateway
+      dockerfile: Dockerfile
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - SERVER_PORT=${GATEWAY_PORT}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      - zipkin
+      - eureka-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: com.msa_delivery.auth
+      dockerfile: Dockerfile
+    ports:
+      - "${AUTH_PORT}:${AUTH_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - SERVER_PORT=${AUTH_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${AUTH_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      - zipkin
+      - eureka-service
+
+
+  user-service:
+    build:
+      context: com.msa_delivery.user
+      dockerfile: Dockerfile
+    ports:
+      - "${USER_PORT}:${USER_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+      - SERVER_PORT=${USER_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${AUTH_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      - zipkin
+      - postgres-db
+      - eureka-service
+
+  # Company Service
+  company-service:
+    build:
+      context: com.msa_delivery.company
+      dockerfile: Dockerfile
+    ports:
+      - "${COMPANY_PORT}:${COMPANY_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+      - SERVER_PORT=${COMPANY_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_REDIS_URL=${REDIS_URL}
+      - SPRING_REDIS_TTL=${REDIS_TTL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${COMPANY_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+    depends_on:
+      - zipkin
+      - postgres-db
+      - eureka-service
+  # Order Service
+  order-service:
+    build:
+      context: com.msa_delivery.order
+      dockerfile: Dockerfile
+    ports:
+      - "${ORDER_PORT}:${ORDER_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+      - SERVER_PORT=${ORDER_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${ORDER_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_REDIS_URL=${REDIS_URL}
+      - SPRING_REDIS_TTL=${REDIS_TTL}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    depends_on:
+      - zipkin
+      - postgres-db
+      - eureka-service
+  # Delivery Service
+  delivery-service:
+    build:
+      context: com.msa_delivery.delivery
+      dockerfile: Dockerfile
+    ports:
+      - "${DELIVERY_PORT}:${DELIVERY_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+      - SERVER_PORT=${DELIVERY_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${DELIVERY_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - SPRING_REDIS_URL=${REDIS_URL}
+      - SPRING_REDIS_TTL=${REDIS_TTL}
+      - TZ=${TZ}
+    depends_on:
+      - zipkin
+      - postgres-db
+      - eureka-service
+  # Slack Service
+  slack-service:
+    build:
+      context: com.msa_delivery.slack_msg
+      dockerfile: Dockerfile
+    ports:
+      - "${SLACK_PORT}:${SLACK_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
+      - SERVER_PORT=${SLACK_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${SLACK_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_REDIS_URL=${REDIS_URL}
+      - SPRING_REDIS_TTL=${REDIS_TTL}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - TZ=${TZ}
+      - SLACK_TOKEN=${SLACK_TOKEN}
+    depends_on:
+      - zipkin
+      - postgres-db
+      - eureka-service
+
+  # Hub Service
+  hub-service:
+    build:
+      context: com.msa-delivery.hub
+      dockerfile: Dockerfile
+    ports:
+      - "${HUB_PORT}:${HUB_PORT}"
+    networks:
+      - msa-network
+    environment:
+      - SERVER_PORT=${HUB_PORT}
+      - SPRING_DATASOURCE_URL=${POSTGRES_URL}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA=${HUB_SCHEMA}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+      - SPRING_JPA_SHOW_SQL=${JPA_SHOW_SQL}
+      - SPRING_REDIS_URL=${REDIS_URL}
+      - SPRING_REDIS_TTL=${REDIS_TTL}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-service:${EUREKA_PORT}/eureka/
+      - KAKAO_API_KEY=${KAKAO_API_KEY}
+      - TZ=${TZ}
+    depends_on:
+      - zipkin
+      - postgres-db
+      - eureka-service
+
+volumes:
+  postgres-data:
+  redis-data:
