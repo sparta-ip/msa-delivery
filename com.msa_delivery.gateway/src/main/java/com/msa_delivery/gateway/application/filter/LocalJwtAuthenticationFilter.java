@@ -79,15 +79,17 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
 
             Date expiration = claims.getExpiration();
             if (expiration.before(new Date())) {
+                log.debug("Token expired: {}", token);
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange;
             }
 
-            if ((claims.get("userId") != null) || (claims.get("username") != null) || (claims.get("role") != null)) {
+            if (claims.get("userId") != null && claims.get("username") != null && claims.get("role") != null) {
                 String userId = claims.get("userId").toString();
                 String username = claims.get("username").toString();
                 String role = claims.get("role").toString();
 
-                Boolean verifiedUser = authService.verifyUser(VerifyUserDto.builder()
+                boolean verifiedUser = authService.verifyUser(VerifyUserDto.builder()
                         .userId(userId)
                         .username(username)
                         .role(role)
@@ -100,14 +102,18 @@ public class LocalJwtAuthenticationFilter implements GlobalFilter {
                             .header("X-Role", role)
                             .build();
 
-                    // 교환의 요청을 업데이트
-                    exchange = exchange.mutate().request(mutatedRequest).build();
-                    return exchange;
+                    return exchange.mutate().request(mutatedRequest).build();
                 }
+                log.warn("User verification failed for user: {}", username);
+            } else {
+                log.warn("Token missing required claims");
             }
+        
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange;
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.warn("Token validation failed: {}", e.getMessage());
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange;
         }
     }
