@@ -102,24 +102,25 @@ public class AuthService {
     public Boolean verifyUser(VerifyUserDto verifyUserDto) {
         try {
             Long longUserId = Long.valueOf(verifyUserDto.getUserId());
-            User user = userRepository.findById(longUserId).orElseThrow(()
-                    -> new IllegalArgumentException("Please check your id"));
+            User user = userRepository.findById(longUserId).orElseThrow(() 
+                    -> new IllegalArgumentException("User not found with id: " + longUserId));
 
-            if (!user.getUsername().equals(verifyUserDto.getUsername()) || !user.getRole().toString().equals(verifyUserDto.getRole())) {
+            if (!isUserCredentialsValid(user, verifyUserDto)) {
+                log.info("User details mismatch for ID: {}", verifyUserDto.getUserId());
                 return false;
             }
+
+            return true;
         } catch (NumberFormatException e) {
-            log.info("Invalid userId format: {}", e.getMessage());
+            log.info("Invalid userId format: {}", verifyUserDto.getUserId());
             return false;
         } catch (IllegalArgumentException e) {
             log.info(e.getMessage());
             return false;
         } catch (Exception e) {
-            log.info("Unexpected error: {}", e.getMessage());
+            log.error("Unexpected error during user verification: {}", e.getMessage(), e);
             return false;
         }
-
-        return true;
     }
 
     public String createAccessToken(User user) {
@@ -133,6 +134,13 @@ public class AuthService {
                 .signWith(getSigningKey())
                 .compact();
     }
+
+    private boolean isUserCredentialsValid(User user, VerifyUserDto verifyUserDto) {
+        boolean usernameMatches = user.getUsername().equals(verifyUserDto.getUsername());
+        boolean roleMatches = user.getRole().toString().equals(verifyUserDto.getRole());
+        return usernameMatches && roleMatches;
+    }
+
 
     public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
         HttpStatus status = throwable instanceof CallNotPermittedException
