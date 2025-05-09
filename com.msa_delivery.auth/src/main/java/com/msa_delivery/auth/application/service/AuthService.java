@@ -7,24 +7,12 @@ import com.msa_delivery.auth.domain.entity.User;
 import com.msa_delivery.auth.domain.entity.UserRoleEnum;
 import com.msa_delivery.auth.domain.repository.UserRepository;
 import com.msa_delivery.auth.infrastructure.dtos.VerifyUserDto;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
-import io.jsonwebtoken.Jwts;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
 @Slf4j
 @Service
@@ -33,150 +21,159 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final JwtProvider jwtProvider;
 
-    @Value("${spring.application.name}")
-    private String issuer;
+    private static final String MSG_SIGNUP_SUCCESS      = "Sign up completed successfully.";
+    private static final String MSG_LOGIN_SUCCESS       = "Sign in completed successfully.";
+    private static final String ERR_USERNAME_EXISTS     = "Username already exists";
+    private static final String ERR_INVALID_CREDENTIALS = "Please check username or password";
 
-    @Value("${service.jwt.secret-key}")
-    private String secretKey;
+    public ResponseEntity<ApiResponseDto<AuthResponseDto>> signUp(AuthRequestDto authRequestDto) {
+        try {
+            validateSignUp(authRequestDto);
+            String encodedPassword = passwordEncoder.encode(authRequestDto.getPassword());
+            User user = User.dtoAndPasswordOf(authRequestDto, encodedPassword);
+            userRepository.save(user);
 
-    @Value("${service.jwt.access-expiration}")
-    private Long accessExpiration;
-
-    @Value("${security.master-key}")
-    private String masterKey;
-
-    private static final String KEY_ALGORITHM = "HmacSHA256";
-    private static final String BEARER_PREFIX = "Bearer ";
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
-        return new SecretKeySpec(keyBytes, KEY_ALGORITHM);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponseDto.response(
+                            HttpStatus.CREATED.value(),
+                            MSG_SIGNUP_SUCCESS,
+                            AuthResponseDto.from(user)
+                    ));
+        } catch (IllegalArgumentException e) {
+            log.warn(
+                    "Sign up failed for user: {}, reason: {}",
+                    authRequestDto.getUsername(),
+                    e.getMessage()
+            );
+            throw e;
+        } catch (Exception e) {
+            log.error(
+                    "Unexpected error during sign up for user: {}",
+                    authRequestDto.getUsername(),
+                    e
+            );
+            throw e;
+        }
     }
 
-    // TODO : MASTER 권한의 경우 추가 키가 필요하도록 설정. (실제론 관리자가 허락해줄때까지 대기하거나 추가 정보 등이 필요하다거나, DB에 key값을 hash로 저장하여 특정 시간에 업데이트 되는 값을 사용하도록 해야할듯.)
-    @CircuitBreaker(name = "signUpCircuitBreaker", fallbackMethod = "fallbackSignUp")
-    @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signUp(AuthRequestDto userRequestDto) {
-        if (userRepository.existsByUsername(userRequestDto.getUsername())) {
-            throw new IllegalArgumentException("Username already exists");
-        }
+    public ResponseEntity<ApiResponseDto<Void>> signIn(AuthRequestDto authRequestDto) {
+        try {
+            User user = userRepository.findByUsername(authRequestDto.getUsername())
+                    .orElseGet(() -> {
+                        // TODO : 반복되는 로깅이나 예외처리는 AOP를 통해 간단하게 유지보수 할 수 있을 것 같다.
+                        log.warn(
+                                "Sign in failed for user: {}, reason: {}",
+                                authRequestDto.getUsername(),
+                                ERR_INVALID_CREDENTIALS
+                        );
+                        throw new IllegalArgumentException(ERR_INVALID_CREDENTIALS);
+                    });
 
-        if (userRequestDto.getRole() == UserRoleEnum.MASTER) {
-            String masterKey = userRequestDto.getMasterKey();
-            if (masterKey == null || !masterKey.equals(getMasterKeyHash())) {
-                throw new IllegalArgumentException(masterKey == null ? "Master key required" : "Invalid master key");
+            if (!passwordEncoder.matches(authRequestDto.getPassword(), user.getPassword())) {
+                log.warn(
+                        "Sign in failed for user: {}, reason: {}",
+                        authRequestDto.getUsername(),
+                        ERR_INVALID_CREDENTIALS
+                );
+                throw new IllegalArgumentException(ERR_INVALID_CREDENTIALS);
             }
+
+            String token = jwtProvider.generateToken(
+                    user.getUserId(),
+                    user.getUsername(),
+                    user.getRole().name()
+            );
+
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer " + token)
+                    .body(ApiResponseDto.response(
+                            HttpStatus.OK.value(),
+                            MSG_LOGIN_SUCCESS,
+                            null
+                    ));
+        } catch (IllegalArgumentException e) {
+            log.warn(
+                    "Sign in failed for user: {}, reason: {}",
+                    authRequestDto.getUsername(),
+                    e.getMessage()
+            );
+            throw e;
+        } catch (Exception e) {
+            log.error(
+                    "Unexpected error during sign in for user: {}",
+                    authRequestDto.getUsername(),
+                    e
+            );
+            throw e;
         }
-
-        String password = userRequestDto.getPassword();
-        String encodedPassword = passwordEncoder.encode(password);
-
-        User user = User.dtoAndPasswordOf(userRequestDto, encodedPassword);
-        userRepository.save(user);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponseDto.response(HttpStatus.CREATED.value(),
-                        "회원가입이 완료되었습니다.",
-                        AuthResponseDto.from(user)));
-    }
-
-    @CircuitBreaker(name = "signInCircuitBreaker", fallbackMethod = "fallbackSignIn")
-    @Retry(name = "defaultRetry")
-    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> signIn(AuthRequestDto authRequestDto) {
-        User user = userRepository.findByUsername(authRequestDto.getUsername()).orElseThrow(()
-                -> new IllegalArgumentException("Please check username or password"));
-
-        if (!passwordEncoder.matches(authRequestDto.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Please check username or password");
-        }
-
-        return ResponseEntity.status(HttpStatus.OK.value())
-                .header("Authorization", createAccessToken(user))
-                .body(ApiResponseDto.response(200,
-                        "로그인에 성공하였습니다.",
-                        null));
     }
 
     public Boolean verifyUser(VerifyUserDto verifyUserDto) {
         try {
-            Long longUserId = Long.valueOf(verifyUserDto.getUserId());
-            User user = userRepository.findById(longUserId).orElseThrow(() 
-                    -> new IllegalArgumentException("User not found with id: " + longUserId));
+            long userId = Long.parseLong(verifyUserDto.getUserId());
+            User user = userRepository.findById(userId)
+                    .orElseGet(() -> {
+                        log.info(
+                                "verifyUser failed - user not found with id: {}",
+                                verifyUserDto.getUserId()
+                        );
+                        throw new IllegalArgumentException(
+                                "User not found with id: " + verifyUserDto.getUserId()
+                        );
+                    });
 
-            if (!isUserCredentialsValid(user, verifyUserDto)) {
-                log.info("User details mismatch for ID: {}", verifyUserDto.getUserId());
-                return false;
+            boolean valid = user.getUsername().equals(verifyUserDto.getUsername())
+                    && user.getRole().name().equals(verifyUserDto.getRole());
+            if (!valid) {
+                log.info(
+                        "verifyUser failed - credentials mismatch for userId: {}",
+                        verifyUserDto.getUserId()
+                );
             }
-
-            return true;
+            return valid;
         } catch (NumberFormatException e) {
-            log.info("Invalid userId format: {}", verifyUserDto.getUserId());
+            log.warn(
+                    "verifyUser failed - invalid userId format: {}",
+                    verifyUserDto.getUserId()
+            );
             return false;
         } catch (IllegalArgumentException e) {
-            log.info(e.getMessage());
+            log.info(
+                    "verifyUser failed: {}",
+                    e.getMessage()
+            );
             return false;
         } catch (Exception e) {
-            log.error("Unexpected error during user verification: {}", e.getMessage(), e);
+            log.error(
+                    "Unexpected error during verifyUser: {}",
+                    e.getMessage(), e
+            );
             return false;
         }
     }
 
-    public String createAccessToken(User user) {
-        return BEARER_PREFIX + Jwts.builder()
-                .claim("userId", user.getUserId())
-                .claim("username", user.getUsername())
-                .claim("role", user.getRole())
-                .issuer(issuer)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + accessExpiration))
-                .signWith(getSigningKey())
-                .compact();
-    }
-
-    private boolean isUserCredentialsValid(User user, VerifyUserDto verifyUserDto) {
-        boolean usernameMatches = user.getUsername().equals(verifyUserDto.getUsername());
-        boolean roleMatches = user.getRole().toString().equals(verifyUserDto.getRole());
-        return usernameMatches && roleMatches;
-    }
-
-
-    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> fallbackSignUp(AuthRequestDto authRequestDto, Throwable throwable) {
-        HttpStatus status = throwable instanceof CallNotPermittedException
-                ? HttpStatus.SERVICE_UNAVAILABLE
-                : HttpStatus.BAD_REQUEST;
-
-        return ResponseEntity.status(status)
-                .body(ApiResponseDto.response(status.value(), throwable.getMessage(), null));
-    }
-
-    public ResponseEntity<ApiResponseDto<? extends AuthResponseDto>> fallbackSignIn(AuthRequestDto authRequestDto, Throwable throwable) {
-        HttpStatus status = throwable instanceof CallNotPermittedException
-                ? HttpStatus.SERVICE_UNAVAILABLE
-                : HttpStatus.BAD_REQUEST;
-
-        return ResponseEntity.status(status)
-                .body(ApiResponseDto.response(status.value(),
-                        throwable.getMessage(),
-                        null));
-    }
-
-    @PostConstruct
-    public void registerEventListeners() {
-        registerEventListener("signUpCircuitBreaker");
-        registerEventListener("signInCircuitBreaker");
-    }
-
-    public void registerEventListener(String circuitBreakerName) {
-        circuitBreakerRegistry.circuitBreaker(circuitBreakerName).getEventPublisher()
-                .onStateTransition(event -> log.info("###CircuitBreaker State Transition: {}", event)) // 상태 전환 이벤트 리스너
-                .onFailureRateExceeded(event -> log.info("###CircuitBreaker Failure Rate Exceeded: {}", event)) // 실패율 초과 이벤트 리스너
-                .onCallNotPermitted(event -> log.info("###CircuitBreaker Call Not Permitted: {}", event)) // 호출 차단 이벤트 리스너
-                .onError(event -> log.info("###CircuitBreaker Error: {}", event)); // 오류 발생 이벤트 리스너
+    private void validateSignUp(AuthRequestDto authRequestDto) {
+        if (userRepository.existsByUsername(authRequestDto.getUsername())) {
+            log.warn(
+                    "Sign up validation failed - username already exists: {}",
+                    authRequestDto.getUsername()
+            );
+            throw new IllegalArgumentException(ERR_USERNAME_EXISTS);
+        }
+        if (authRequestDto.getRole() == UserRoleEnum.MASTER &&
+                (authRequestDto.getMasterKey() == null ||
+                        !authRequestDto.getMasterKey().equals(getMasterKeyHash()))) {
+            log.warn(
+                    "Sign up validation failed - invalid master key for user: {}",
+                    authRequestDto.getUsername()
+            );
+            throw new IllegalArgumentException("Invalid master key");
+        }
     }
 
     private String getMasterKeyHash() {
-        return masterKey;
+        return jwtProvider.getMasterKeyInHash();
     }
 }

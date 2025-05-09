@@ -1,0 +1,8 @@
+host:
+  url: localhost
+  db:
+    url: localhost
+
+database:
+  username: postgres
+  password: 15263524
