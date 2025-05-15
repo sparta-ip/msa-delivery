@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  eureka-service:
+    build:
+      context: ./com.msa_delivery.eureka
+      dockerfile: Dockerfile
+    ports:
+      - "19090:19090"
+    networks:
+      - my-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://eureka-service:19090/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  gateway-service:
+    build:
+      context: ./com.msa_delivery.gateway
+      dockerfile: Dockerfile
+    ports:
+      - "19091:19091"
+    networks:
+      - my-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://eureka-service:19091/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    restart: on-failure:5
+
+networks:
+  my-network:
+    driver: bridge
